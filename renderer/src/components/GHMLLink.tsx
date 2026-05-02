@@ -81,7 +81,6 @@ export default function GHMLLink({
         onError: (err) => { setError(err.message); setLoading(false); },
       });
     } else {
-      let final = '';
       await executeGHMLLink({
         link: resolvedLink,
         provider,
@@ -89,7 +88,7 @@ export default function GHMLLink({
         pageContent,
         chainHistory,
         userVariables,
-        onToken: (text) => { final = text; },
+        onToken: (_text) => {},
         onDone: (text) => {
           setLoading(false);
           const newChain: ChainEntry[] = [
@@ -100,7 +99,6 @@ export default function GHMLLink({
         },
         onError: (err) => { setError(err.message); setLoading(false); },
       });
-      void final;
     }
   }, [link, isReady, provider, apiKey, pageContent, chainHistory, userVariables, onNavigate]);
 

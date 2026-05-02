@@ -46,9 +46,8 @@ export default function GHMLViewer({
   onNavigate,
   depth = 0,
 }: GHMLViewerProps) {
+  const { processed, uriMap } = useMemo(() => preprocessContent(content ?? ''), [content]);
   if (!content) return null;
-
-  const { processed, uriMap } = useMemo(() => preprocessContent(content), [content]);
 
   return (
     <div className={`ghml-content${depth > 0 ? ' ghml-nested' : ''}`}>

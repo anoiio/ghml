@@ -44,9 +44,10 @@ const DEFAULT_CONTENT = `# Welcome to GHML
 export default function App() {
   const [currentDoc, setCurrentDoc] = useState(DEFAULT_CONTENT);
   const [chainHistory, setChainHistory] = useState<ChainEntry[]>([]);
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem('ghml-theme') as Theme | null) ?? 'clean',
-  );
+  const [theme, setTheme] = useState<Theme>(() => {
+    const stored = localStorage.getItem('ghml-theme');
+    return stored === 'cyberpunk' ? 'cyberpunk' : 'clean';
+  });
   const [provider, setProvider] = useState<Provider>(
     () => (localStorage.getItem('ghml-provider') as Provider | null) ?? 'api',
   );
