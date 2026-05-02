@@ -2,9 +2,10 @@ import React, { useRef } from 'react';
 
 interface FileLoaderProps {
   onLoad: (content: string) => void;
+  className?: string;
 }
 
-export default function FileLoader({ onLoad }: FileLoaderProps) {
+export default function FileLoader({ onLoad, className = '' }: FileLoaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,7 +31,7 @@ export default function FileLoader({ onLoad }: FileLoaderProps) {
       />
       <button
         onClick={() => inputRef.current?.click()}
-        className="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600"
+        className={`px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600 header-btn ${className}`}
       >
         Load .ghml
       </button>

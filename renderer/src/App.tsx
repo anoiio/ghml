@@ -3,6 +3,7 @@ import GHMLViewer from './components/GHMLViewer';
 import Settings from './components/Settings';
 import FileLoader from './components/FileLoader';
 import { ChainEntry, Provider } from './executor/llm-executor';
+import { Theme } from './types';
 
 const DEFAULT_CONTENT = `# Welcome to GHML
 
@@ -43,6 +44,9 @@ const DEFAULT_CONTENT = `# Welcome to GHML
 export default function App() {
   const [currentDoc, setCurrentDoc] = useState(DEFAULT_CONTENT);
   const [chainHistory, setChainHistory] = useState<ChainEntry[]>([]);
+  const [theme, setTheme] = useState<Theme>(
+    () => (localStorage.getItem('ghml-theme') as Theme | null) ?? 'clean',
+  );
   const [provider, setProvider] = useState<Provider>(
     () => (localStorage.getItem('ghml-provider') as Provider | null) ?? 'api',
   );
@@ -61,10 +65,12 @@ export default function App() {
   }, []);
 
   const handleSaveSettings = useCallback(
-    (newProvider: Provider, key: string, vars: Record<string, unknown>) => {
+    (newTheme: Theme, newProvider: Provider, key: string, vars: Record<string, unknown>) => {
+      setTheme(newTheme);
       setProvider(newProvider);
       setApiKey(key);
       setUserVariables(vars);
+      localStorage.setItem('ghml-theme', newTheme);
       localStorage.setItem('ghml-provider', newProvider);
       localStorage.setItem('ghml-api-key', key);
       localStorage.setItem('ghml-vars', JSON.stringify(vars));
@@ -88,14 +94,14 @@ export default function App() {
   const needsApiKey = provider === 'api' && !apiKey;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" data-theme={theme}>
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-2.5 flex items-center gap-3">
         <button
           onClick={handleHome}
-          className="flex items-center gap-2 font-semibold text-gray-900 hover:text-blue-600"
+          className="flex items-center gap-2 font-semibold hover:text-blue-600 ghml-logo-text text-gray-900"
         >
-          <span className="text-blue-600 font-bold font-mono text-xs bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">
+          <span className="font-bold font-mono text-xs bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded text-blue-600 ghml-logo-badge">
             ghml
           </span>
           <span className="text-sm">GHML Renderer</span>
@@ -103,15 +109,14 @@ export default function App() {
 
         <div className="flex-1" />
 
-        {/* Provider badge */}
         {provider === 'local-cli' && (
-          <span className="text-xs font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded hidden sm:inline">
+          <span className="text-xs font-mono bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded hidden sm:inline text-emerald-700 local-cli-badge">
             ⚡ Local CLI
           </span>
         )}
 
         {chainHistory.length > 0 && (
-          <span className="text-xs text-gray-400 font-mono hidden sm:inline">
+          <span className="text-xs text-gray-400 font-mono hidden sm:inline hop-counter">
             {chainHistory.length} hop{chainHistory.length !== 1 ? 's' : ''} deep
           </span>
         )}
@@ -119,10 +124,8 @@ export default function App() {
         <button
           onClick={() => setShowSource((s) => !s)}
           className={[
-            'px-3 py-1.5 text-xs rounded-lg border',
-            showSource
-              ? 'bg-gray-100 border-gray-300 text-gray-700'
-              : 'border-gray-200 hover:bg-gray-50 text-gray-600',
+            'px-3 py-1.5 text-xs rounded-lg border header-btn',
+            showSource ? 'header-btn-active bg-gray-100 border-gray-300 text-gray-700' : 'border-gray-200 hover:bg-gray-50 text-gray-600',
           ].join(' ')}
         >
           {showSource ? 'Rendered' : 'Source'}
@@ -133,13 +136,11 @@ export default function App() {
         <button
           onClick={() => setShowSettings(true)}
           className={[
-            'px-3 py-1.5 text-xs rounded-lg border flex items-center gap-1.5',
-            needsApiKey
-              ? 'border-amber-300 bg-amber-50 text-amber-700'
-              : 'border-gray-200 hover:bg-gray-50 text-gray-600',
+            'px-3 py-1.5 text-xs rounded-lg border flex items-center gap-1.5 header-btn',
+            needsApiKey ? 'header-settings-warn border-amber-300 bg-amber-50 text-amber-700' : 'border-gray-200 hover:bg-gray-50 text-gray-600',
           ].join(' ')}
         >
-          {needsApiKey && <span className="text-amber-500 text-xs">⚠</span>}
+          {needsApiKey && <span className="text-xs">⚠</span>}
           Settings
         </button>
       </header>
@@ -153,13 +154,14 @@ export default function App() {
                 GHML Source
               </h2>
             </div>
-            <pre className="bg-gray-900 text-gray-100 rounded-xl p-4 text-sm overflow-auto font-mono leading-relaxed whitespace-pre-wrap">
+            <pre className="source-view bg-gray-900 text-gray-100 rounded-xl p-4 text-sm overflow-auto font-mono leading-relaxed whitespace-pre-wrap">
               {currentDoc}
             </pre>
           </div>
         ) : (
           <GHMLViewer
             content={currentDoc}
+            theme={theme}
             provider={provider}
             apiKey={apiKey}
             chainHistory={chainHistory}
@@ -171,6 +173,7 @@ export default function App() {
 
       {showSettings && (
         <Settings
+          theme={theme}
           provider={provider}
           apiKey={apiKey}
           userVariables={userVariables}
