@@ -42,8 +42,9 @@ function claudeCliPlugin(): Plugin {
           const proc = spawn('claude', [
             '-p', fullPrompt,
             '--output-format', 'stream-json',
+            '--verbose',
             '--no-session-persistence',
-          ]);
+          ], { stdio: ['ignore', 'pipe', 'pipe'] });
 
           let prevText = '';
           let done = false;
