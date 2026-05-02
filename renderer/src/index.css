@@ -32,3 +32,171 @@
 
   .ghml-nested { @apply mt-3 pl-3 border-l-2 border-gray-200; }
 }
+
+/* ── Cyberpunk Theme (Neo-Noir/Neon) ────────────────────────────────────── */
+
+[data-theme="cyberpunk"] {
+  background-color: #08080f;
+  color: #b0cce0;
+}
+
+/* Page chrome */
+[data-theme="cyberpunk"] header {
+  background: #0d0d1a;
+  border-color: rgba(0, 255, 255, 0.15);
+}
+
+[data-theme="cyberpunk"] header .ghml-logo-text {
+  color: #b0cce0;
+}
+
+[data-theme="cyberpunk"] header .ghml-logo-badge {
+  background: rgba(0, 255, 255, 0.08);
+  border-color: rgba(0, 255, 255, 0.3);
+  color: #00ffff;
+}
+
+[data-theme="cyberpunk"] header .header-btn {
+  border-color: rgba(0, 255, 255, 0.15);
+  color: #4a6070;
+  background: transparent;
+}
+[data-theme="cyberpunk"] header .header-btn:hover {
+  background: rgba(0, 255, 255, 0.06);
+  color: #00ffff;
+  border-color: rgba(0, 255, 255, 0.3);
+}
+[data-theme="cyberpunk"] header .header-btn-active {
+  background: rgba(0, 255, 255, 0.1);
+  border-color: rgba(0, 255, 255, 0.35);
+  color: #00ffff;
+}
+
+[data-theme="cyberpunk"] header .header-settings-warn {
+  border-color: rgba(255, 170, 0, 0.4);
+  background: rgba(255, 170, 0, 0.06);
+  color: #ffaa00;
+}
+
+[data-theme="cyberpunk"] header .local-cli-badge {
+  background: rgba(0, 255, 255, 0.06);
+  border-color: rgba(0, 255, 255, 0.2);
+  color: #00ffff;
+}
+
+[data-theme="cyberpunk"] header .hop-counter {
+  color: rgba(0, 255, 255, 0.35);
+}
+
+/* Source view */
+[data-theme="cyberpunk"] .source-view {
+  background: #010108 !important;
+  border: 1px solid rgba(0, 255, 65, 0.15);
+  color: #00ff41 !important;
+}
+
+/* Settings modal */
+[data-theme="cyberpunk"] .settings-overlay {
+  background: rgba(0, 0, 8, 0.75);
+}
+[data-theme="cyberpunk"] .settings-modal {
+  background: #0d0d1a;
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  color: #b0cce0;
+  box-shadow: 0 0 40px rgba(0, 255, 255, 0.05);
+}
+[data-theme="cyberpunk"] .settings-modal h2 {
+  color: #00ffff;
+  font-family: ui-monospace, 'Courier New', monospace;
+  letter-spacing: 0.05em;
+}
+[data-theme="cyberpunk"] .settings-modal label,
+[data-theme="cyberpunk"] .settings-modal .settings-label {
+  color: rgba(0, 255, 255, 0.6);
+}
+[data-theme="cyberpunk"] .settings-modal input[type="password"],
+[data-theme="cyberpunk"] .settings-modal textarea {
+  background: #06060f;
+  border-color: rgba(0, 255, 255, 0.15);
+  color: #b0cce0;
+}
+[data-theme="cyberpunk"] .settings-modal input[type="password"]:focus,
+[data-theme="cyberpunk"] .settings-modal textarea:focus {
+  border-color: rgba(0, 255, 255, 0.45);
+  box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.08);
+  outline: none;
+}
+[data-theme="cyberpunk"] .settings-modal input::placeholder,
+[data-theme="cyberpunk"] .settings-modal textarea::placeholder {
+  color: #1e2e3a;
+}
+[data-theme="cyberpunk"] .settings-modal .settings-note {
+  color: rgba(0, 255, 255, 0.3);
+}
+[data-theme="cyberpunk"] .settings-modal .settings-save-btn {
+  background: rgba(0, 255, 255, 0.12);
+  border: 1px solid rgba(0, 255, 255, 0.35);
+  color: #00ffff;
+}
+[data-theme="cyberpunk"] .settings-modal .settings-save-btn:hover {
+  background: rgba(0, 255, 255, 0.22);
+}
+[data-theme="cyberpunk"] .settings-modal .settings-cancel-btn {
+  color: #3a5060;
+}
+[data-theme="cyberpunk"] .settings-modal .settings-cancel-btn:hover {
+  color: #7090a0;
+  background: rgba(0, 255, 255, 0.04);
+}
+
+/* Markdown content */
+[data-theme="cyberpunk"] .ghml-content {
+  color: #90aabf;
+}
+[data-theme="cyberpunk"] .ghml-content h1,
+[data-theme="cyberpunk"] .ghml-content h2,
+[data-theme="cyberpunk"] .ghml-content h3 {
+  color: #00ffff;
+  font-family: ui-monospace, 'Courier New', Courier, monospace;
+}
+[data-theme="cyberpunk"] .ghml-content strong {
+  color: #c8dce8;
+}
+[data-theme="cyberpunk"] .ghml-content a {
+  color: #00ddff;
+}
+[data-theme="cyberpunk"] .ghml-content code {
+  background: rgba(0, 255, 65, 0.07);
+  color: #00ff41;
+}
+[data-theme="cyberpunk"] .ghml-content pre {
+  background: #010108;
+  border: 1px solid rgba(0, 255, 65, 0.15);
+}
+[data-theme="cyberpunk"] .ghml-content pre code {
+  background: transparent;
+  color: #00ff41;
+}
+[data-theme="cyberpunk"] .ghml-content table th {
+  background: #0a1520;
+  border-color: rgba(0, 255, 255, 0.2);
+  color: #00ffff;
+}
+[data-theme="cyberpunk"] .ghml-content table td {
+  border-color: rgba(0, 255, 255, 0.08);
+}
+[data-theme="cyberpunk"] .ghml-content blockquote {
+  border-color: rgba(0, 255, 255, 0.4);
+  color: #4a6070;
+}
+[data-theme="cyberpunk"] .ghml-content hr {
+  border-color: rgba(0, 255, 255, 0.08);
+}
+[data-theme="cyberpunk"] .ghml-nested {
+  border-color: rgba(0, 255, 255, 0.12);
+}
+
+/* GHML link error text */
+[data-theme="cyberpunk"] .ghml-link-error {
+  color: #ff4488;
+}
