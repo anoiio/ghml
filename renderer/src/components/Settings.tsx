@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
+import { Provider } from '../executor/llm-executor';
 
 interface SettingsProps {
+  provider: Provider;
   apiKey: string;
   userVariables: Record<string, unknown>;
-  onSave: (apiKey: string, userVariables: Record<string, unknown>) => void;
+  onSave: (provider: Provider, apiKey: string, userVariables: Record<string, unknown>) => void;
   onClose: () => void;
 }
 
-export default function Settings({ apiKey, userVariables, onSave, onClose }: SettingsProps) {
+export default function Settings({ provider, apiKey, userVariables, onSave, onClose }: SettingsProps) {
+  const [selectedProvider, setSelectedProvider] = useState<Provider>(provider);
   const [key, setKey] = useState(apiKey);
   const [varsText, setVarsText] = useState(
     Object.entries(userVariables).map(([k, v]) => `${k}=${v}`).join('\n'),
@@ -23,7 +26,7 @@ export default function Settings({ apiKey, userVariables, onSave, onClose }: Set
         if (k) vars[k] = v;
       }
     }
-    onSave(key.trim(), vars);
+    onSave(selectedProvider, key.trim(), vars);
     onClose();
   };
 
@@ -39,24 +42,65 @@ export default function Settings({ apiKey, userVariables, onSave, onClose }: Set
         <h2 className="text-lg font-semibold mb-4">Settings</h2>
 
         <div className="space-y-4">
+          {/* Provider selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Anthropic API Key
-            </label>
-            <input
-              type="password"
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
-              placeholder="sk-ant-..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              Get your key at{' '}
-              <span className="font-mono text-blue-600">console.anthropic.com</span>.
-              Stored in localStorage only.
-            </p>
+            <label className="block text-sm font-medium text-gray-700 mb-2">LLM Provider</label>
+            <div className="space-y-2">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="radio"
+                  name="provider"
+                  value="api"
+                  checked={selectedProvider === 'api'}
+                  onChange={() => setSelectedProvider('api')}
+                  className="mt-0.5 accent-blue-600"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-800">Anthropic API</span>
+                  <p className="text-xs text-gray-500">Requires an API key from console.anthropic.com</p>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="radio"
+                  name="provider"
+                  value="local-cli"
+                  checked={selectedProvider === 'local-cli'}
+                  onChange={() => setSelectedProvider('local-cli')}
+                  className="mt-0.5 accent-blue-600"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-800">Local Claude CLI ⚡</span>
+                  <p className="text-xs text-gray-500">
+                    Uses your Claude Code subscription — no API key needed.
+                    Requires <code className="font-mono bg-gray-100 px-1 rounded">npm run dev</code> (not the built app).
+                  </p>
+                </div>
+              </label>
+            </div>
           </div>
 
+          {/* API key — only shown for API provider */}
+          {selectedProvider === 'api' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Anthropic API Key
+              </label>
+              <input
+                type="password"
+                value={key}
+                onChange={(e) => setKey(e.target.value)}
+                placeholder="sk-ant-..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Stored in localStorage only — never sent anywhere except Anthropic.
+              </p>
+            </div>
+          )}
+
+          {/* User variables */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               User Variables{' '}
@@ -68,7 +112,7 @@ export default function Settings({ apiKey, userVariables, onSave, onClose }: Set
               value={varsText}
               onChange={(e) => setVarsText(e.target.value)}
               placeholder={'user.name=Alice\nuser.role=developer\nuser.plan=pro'}
-              rows={5}
+              rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <p className="mt-1 text-xs text-gray-500">One key=value per line</p>

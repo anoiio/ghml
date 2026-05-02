@@ -1,11 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { parseGHMLUri, interpolatePrompt } from '../parser/ghml-parser';
-import { executeGHMLLink, ChainEntry } from '../executor/llm-executor';
+import { executeGHMLLink, ChainEntry, Provider } from '../executor/llm-executor';
 import GHMLViewer from './GHMLViewer';
 
 interface GHMLLinkProps {
   href: string;
   children: React.ReactNode;
+  provider: Provider;
   apiKey: string;
   pageContent: string;
   chainHistory: ChainEntry[];
@@ -24,6 +25,7 @@ const TYPE_COLORS: Record<string, string> = {
 export default function GHMLLink({
   href,
   children,
+  provider,
   apiKey,
   pageContent,
   chainHistory,
@@ -37,21 +39,20 @@ export default function GHMLLink({
 
   const link = parseGHMLUri(href);
 
+  // Link is clickable when: not loading, and either using local CLI or has an API key
+  const isReady = !loading && (provider === 'local-cli' || !!apiKey);
+
   const handleClick = useCallback(async () => {
-    if (!link || !apiKey || loading) return;
+    if (!link || !isReady) return;
 
     setError('');
     setLoading(true);
     setInlineContent('');
 
-    // Resolve selection context
     let resolvedPrompt = link.prompt;
     if (link.attrs.context?.includes('selection')) {
       const selection = window.getSelection()?.toString() ?? '';
-      resolvedPrompt = interpolatePrompt(link.prompt, {
-        ...userVariables,
-        selection,
-      });
+      resolvedPrompt = interpolatePrompt(link.prompt, { ...userVariables, selection });
     } else {
       resolvedPrompt = interpolatePrompt(link.prompt, userVariables);
     }
@@ -59,9 +60,9 @@ export default function GHMLLink({
     const resolvedLink = { ...link, prompt: resolvedPrompt };
 
     if (link.type === 'action') {
-      // Stream inline at link position
       await executeGHMLLink({
         link: resolvedLink,
+        provider,
         apiKey,
         pageContent,
         chainHistory,
@@ -71,10 +72,10 @@ export default function GHMLLink({
         onError: (err) => { setError(err.message); setLoading(false); },
       });
     } else {
-      // render / nav / embed — generate new page content
       let final = '';
       await executeGHMLLink({
         link: resolvedLink,
+        provider,
         apiKey,
         pageContent,
         chainHistory,
@@ -90,9 +91,9 @@ export default function GHMLLink({
         },
         onError: (err) => { setError(err.message); setLoading(false); },
       });
-      void final; // captured in onDone closure
+      void final;
     }
-  }, [link, apiKey, loading, pageContent, chainHistory, userVariables, onNavigate]);
+  }, [link, isReady, provider, apiKey, pageContent, chainHistory, userVariables, onNavigate]);
 
   if (!link) {
     return <a href={href} className="text-blue-600 hover:underline">{children}</a>;
@@ -104,14 +105,14 @@ export default function GHMLLink({
     <span className="inline-block my-0.5">
       <button
         onClick={handleClick}
-        disabled={loading || !apiKey}
+        disabled={!isReady}
         title={`[${link.type}] ${link.prompt.slice(0, 80)}${link.prompt.length > 80 ? '…' : ''}`}
         className={[
           'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md border',
           'text-sm font-medium transition-colors cursor-pointer',
           colorClass,
           loading ? 'opacity-60 cursor-wait' : '',
-          !apiKey ? 'opacity-40 cursor-not-allowed' : '',
+          !isReady && !loading ? 'opacity-40 cursor-not-allowed' : '',
         ].join(' ')}
       >
         {loading && (
@@ -129,6 +130,7 @@ export default function GHMLLink({
         <div className="mt-2">
           <GHMLViewer
             content={inlineContent}
+            provider={provider}
             apiKey={apiKey}
             chainHistory={chainHistory}
             userVariables={userVariables}

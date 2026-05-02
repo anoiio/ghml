@@ -2,10 +2,11 @@ import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import GHMLLink from './GHMLLink';
-import { ChainEntry } from '../executor/llm-executor';
+import { ChainEntry, Provider } from '../executor/llm-executor';
 
 interface GHMLViewerProps {
   content: string;
+  provider: Provider;
   apiKey: string;
   chainHistory?: ChainEntry[];
   userVariables?: Record<string, unknown>;
@@ -37,6 +38,7 @@ function preprocessContent(raw: string): {
 
 export default function GHMLViewer({
   content,
+  provider,
   apiKey,
   chainHistory = [],
   userVariables = {},
@@ -45,7 +47,6 @@ export default function GHMLViewer({
 }: GHMLViewerProps) {
   if (!content) return null;
 
-  // Pre-process once per content change to replace ghml: URIs with valid placeholders
   const { processed, uriMap } = useMemo(() => preprocessContent(content), [content]);
 
   return (
@@ -54,7 +55,6 @@ export default function GHMLViewer({
         remarkPlugins={[remarkGfm]}
         components={{
           a({ href, children }) {
-            // Resolve placeholder back to original ghml: URI
             const resolvedHref =
               href?.startsWith(PLACEHOLDER_PREFIX) ? uriMap.get(href) ?? href : href;
 
@@ -62,6 +62,7 @@ export default function GHMLViewer({
               return (
                 <GHMLLink
                   href={resolvedHref}
+                  provider={provider}
                   apiKey={apiKey}
                   pageContent={content}
                   chainHistory={chainHistory}

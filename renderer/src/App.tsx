@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import GHMLViewer from './components/GHMLViewer';
 import Settings from './components/Settings';
 import FileLoader from './components/FileLoader';
-import { ChainEntry } from './executor/llm-executor';
+import { ChainEntry, Provider } from './executor/llm-executor';
 
 const DEFAULT_CONTENT = `# Welcome to GHML
 
@@ -37,12 +37,15 @@ const DEFAULT_CONTENT = `# Welcome to GHML
 
 ---
 
-*Enter your API key in Settings (top right), then click any link above.*
+*Choose a provider in Settings (top right), then click any link above.*
 `;
 
 export default function App() {
   const [currentDoc, setCurrentDoc] = useState(DEFAULT_CONTENT);
   const [chainHistory, setChainHistory] = useState<ChainEntry[]>([]);
+  const [provider, setProvider] = useState<Provider>(
+    () => (localStorage.getItem('ghml-provider') as Provider | null) ?? 'api',
+  );
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('ghml-api-key') ?? '');
   const [userVariables, setUserVariables] = useState<Record<string, unknown>>(() => {
     try { return JSON.parse(localStorage.getItem('ghml-vars') ?? '{}'); }
@@ -58,9 +61,11 @@ export default function App() {
   }, []);
 
   const handleSaveSettings = useCallback(
-    (key: string, vars: Record<string, unknown>) => {
+    (newProvider: Provider, key: string, vars: Record<string, unknown>) => {
+      setProvider(newProvider);
       setApiKey(key);
       setUserVariables(vars);
+      localStorage.setItem('ghml-provider', newProvider);
       localStorage.setItem('ghml-api-key', key);
       localStorage.setItem('ghml-vars', JSON.stringify(vars));
     },
@@ -80,6 +85,8 @@ export default function App() {
     setShowSource(false);
   }, []);
 
+  const needsApiKey = provider === 'api' && !apiKey;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -95,6 +102,13 @@ export default function App() {
         </button>
 
         <div className="flex-1" />
+
+        {/* Provider badge */}
+        {provider === 'local-cli' && (
+          <span className="text-xs font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded hidden sm:inline">
+            ⚡ Local CLI
+          </span>
+        )}
 
         {chainHistory.length > 0 && (
           <span className="text-xs text-gray-400 font-mono hidden sm:inline">
@@ -120,12 +134,12 @@ export default function App() {
           onClick={() => setShowSettings(true)}
           className={[
             'px-3 py-1.5 text-xs rounded-lg border flex items-center gap-1.5',
-            !apiKey
+            needsApiKey
               ? 'border-amber-300 bg-amber-50 text-amber-700'
               : 'border-gray-200 hover:bg-gray-50 text-gray-600',
           ].join(' ')}
         >
-          {!apiKey && <span className="text-amber-500 text-xs">⚠</span>}
+          {needsApiKey && <span className="text-amber-500 text-xs">⚠</span>}
           Settings
         </button>
       </header>
@@ -146,6 +160,7 @@ export default function App() {
         ) : (
           <GHMLViewer
             content={currentDoc}
+            provider={provider}
             apiKey={apiKey}
             chainHistory={chainHistory}
             userVariables={userVariables}
@@ -156,6 +171,7 @@ export default function App() {
 
       {showSettings && (
         <Settings
+          provider={provider}
           apiKey={apiKey}
           userVariables={userVariables}
           onSave={handleSaveSettings}

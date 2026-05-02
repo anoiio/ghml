@@ -1,6 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { GHMLLink } from '../parser/ghml-parser';
 
+export type Provider = 'api' | 'local-cli';
+
 export interface ChainEntry {
   prompt: string;
   response: string;
@@ -8,6 +10,7 @@ export interface ChainEntry {
 
 export interface ExecuteOptions {
   link: GHMLLink;
+  provider: Provider;
   apiKey: string;
   pageContent?: string;
   chainHistory?: ChainEntry[];
@@ -19,8 +22,7 @@ export interface ExecuteOptions {
 
 const DEFAULT_MODEL = 'claude-opus-4-7';
 
-// Stable system prompt — cached on the first request, read from cache thereafter.
-// Per prompt-caching best practice: stable content first, volatile content appended later.
+// Stable system prompt — cached on first API request, reused thereafter.
 const GHML_SYSTEM_BASE = `You are a GHML (Generative HyperText Markup Language) renderer.
 Your job is to generate content in response to user prompts.
 
@@ -38,55 +40,56 @@ GHML LINK EXAMPLES:
 [Compare options](ghml:render "Compare A vs B across 5 dimensions" context=chain)`.trim();
 
 export async function executeGHMLLink(options: ExecuteOptions): Promise<void> {
-  const {
-    link,
-    apiKey,
-    pageContent,
-    chainHistory = [],
-    onToken,
-    onDone,
-    onError,
-  } = options;
+  const { link, provider, apiKey, pageContent, chainHistory = [], onToken, onDone, onError } = options;
 
-  const client = new Anthropic({
-    apiKey,
-    dangerouslyAllowBrowser: true,
-  });
-
-  // Assemble system content — stable base is cached, volatile context appended after
-  const systemBlocks: Anthropic.TextBlockParam[] = [
-    {
-      type: 'text',
-      text: GHML_SYSTEM_BASE,
-      // Cache the stable system prompt to save tokens on repeated clicks
-      cache_control: { type: 'ephemeral' },
-    },
-  ];
-
+  // Build context additions (shared by both providers)
+  const contextParts: string[] = [];
   if (link.attrs.context?.includes('page') && pageContent) {
-    systemBlocks.push({
-      type: 'text',
-      text: `\n\n## Current Page Content\n${pageContent}`,
-    });
+    contextParts.push(`## Current Page Content\n${pageContent}`);
   }
-
   if (link.attrs.context?.includes('chain') && chainHistory.length > 0) {
     const historyText = chainHistory
       .map((e, i) => `### Navigation ${i + 1}\nPrompt: ${e.prompt}\nResponse:\n${e.response}`)
       .join('\n\n');
-    systemBlocks.push({
-      type: 'text',
-      text: `\n\n## Navigation History\n${historyText}`,
-    });
+    contextParts.push(`## Navigation History\n${historyText}`);
   }
 
-  const userMessage: string =
+  const userMessage =
     link.attrs.context?.includes('selection')
       ? `Selected text context is embedded in the prompt.\n\n${link.prompt}`
       : link.prompt;
 
-  const model = link.attrs.model ?? DEFAULT_MODEL;
+  if (provider === 'local-cli') {
+    const systemWithContext = [GHML_SYSTEM_BASE, ...contextParts].join('\n\n');
+    await executeWithCLI(userMessage, systemWithContext, onToken, onDone, onError);
+  } else {
+    await executeWithAPI(link, userMessage, contextParts, apiKey, onToken, onDone, onError);
+  }
+}
 
+// ── Anthropic API path ──────────────────────────────────────────────────────
+
+async function executeWithAPI(
+  link: GHMLLink,
+  userMessage: string,
+  contextParts: string[],
+  apiKey: string,
+  onToken: (accumulated: string) => void,
+  onDone: (final: string) => void,
+  onError: (error: Error) => void,
+): Promise<void> {
+  const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+
+  const systemBlocks: Anthropic.TextBlockParam[] = [
+    {
+      type: 'text',
+      text: GHML_SYSTEM_BASE,
+      cache_control: { type: 'ephemeral' }, // prompt caching on the stable prefix
+    },
+    ...contextParts.map((text): Anthropic.TextBlockParam => ({ type: 'text', text: `\n\n${text}` })),
+  ];
+
+  const model = link.attrs.model ?? DEFAULT_MODEL;
   let accumulated = '';
 
   try {
@@ -99,17 +102,73 @@ export async function executeGHMLLink(options: ExecuteOptions): Promise<void> {
     });
 
     for await (const event of stream) {
-      // Only surface text deltas to the UI — skip thinking blocks
-      if (
-        event.type === 'content_block_delta' &&
-        event.delta.type === 'text_delta'
-      ) {
+      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
         accumulated += event.delta.text;
         onToken(accumulated);
       }
     }
 
     await stream.finalMessage();
+    onDone(accumulated);
+  } catch (error) {
+    onError(error instanceof Error ? error : new Error(String(error)));
+  }
+}
+
+// ── Local Claude CLI path ───────────────────────────────────────────────────
+
+async function executeWithCLI(
+  prompt: string,
+  system: string,
+  onToken: (accumulated: string) => void,
+  onDone: (final: string) => void,
+  onError: (error: Error) => void,
+): Promise<void> {
+  let accumulated = '';
+
+  try {
+    const response = await fetch('/api/claude-cli', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, system }),
+    });
+
+    if (!response.ok || !response.body) {
+      throw new Error(`Proxy error ${response.status}: is the dev server running?`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const event = JSON.parse(line.slice(6)) as { type: string; text?: string; message?: string };
+          if (event.type === 'token' && event.text) {
+            accumulated += event.text;
+            onToken(accumulated);
+          } else if (event.type === 'done') {
+            onDone(accumulated);
+            return;
+          } else if (event.type === 'error') {
+            onError(new Error(event.message ?? 'CLI error'));
+            return;
+          }
+        } catch {
+          // malformed SSE line — skip
+        }
+      }
+    }
+
     onDone(accumulated);
   } catch (error) {
     onError(error instanceof Error ? error : new Error(String(error)));
