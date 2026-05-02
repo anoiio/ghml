@@ -1,11 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import { parseGHMLUri, interpolatePrompt } from '../parser/ghml-parser';
 import { executeGHMLLink, ChainEntry, Provider } from '../executor/llm-executor';
+import { Theme } from '../types';
 import GHMLViewer from './GHMLViewer';
 
 interface GHMLLinkProps {
   href: string;
   children: React.ReactNode;
+  theme: Theme;
   provider: Provider;
   apiKey: string;
   pageContent: string;
@@ -15,16 +17,24 @@ interface GHMLLinkProps {
   depth: number;
 }
 
-const TYPE_COLORS: Record<string, string> = {
+const TYPE_COLORS_CLEAN: Record<string, string> = {
   render: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100',
   nav:    'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100',
   action: 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100',
   embed:  'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100',
 };
 
+const TYPE_COLORS_CYBERPUNK: Record<string, string> = {
+  render: 'border-cyan-400/50 text-cyan-300 bg-cyan-950/20 hover:bg-cyan-950/50',
+  nav:    'border-fuchsia-400/50 text-fuchsia-300 bg-fuchsia-950/20 hover:bg-fuchsia-950/50',
+  action: 'border-green-400/50 text-green-300 bg-green-950/20 hover:bg-green-950/50',
+  embed:  'border-yellow-400/50 text-yellow-300 bg-yellow-950/20 hover:bg-yellow-950/50',
+};
+
 export default function GHMLLink({
   href,
   children,
+  theme,
   provider,
   apiKey,
   pageContent,
@@ -38,9 +48,8 @@ export default function GHMLLink({
   const [error, setError] = useState('');
 
   const link = parseGHMLUri(href);
-
-  // Link is clickable when: not loading, and either using local CLI or has an API key
   const isReady = !loading && (provider === 'local-cli' || !!apiKey);
+  const colors = theme === 'cyberpunk' ? TYPE_COLORS_CYBERPUNK : TYPE_COLORS_CLEAN;
 
   const handleClick = useCallback(async () => {
     if (!link || !isReady) return;
@@ -99,7 +108,7 @@ export default function GHMLLink({
     return <a href={href} className="text-blue-600 hover:underline">{children}</a>;
   }
 
-  const colorClass = TYPE_COLORS[link.type] ?? TYPE_COLORS.render;
+  const colorClass = colors[link.type] ?? colors.render;
 
   return (
     <span className="inline-block my-0.5">
@@ -112,7 +121,7 @@ export default function GHMLLink({
           'text-sm font-medium transition-colors cursor-pointer',
           colorClass,
           loading ? 'opacity-60 cursor-wait' : '',
-          !isReady && !loading ? 'opacity-40 cursor-not-allowed' : '',
+          !isReady && !loading ? 'opacity-30 cursor-not-allowed' : '',
         ].join(' ')}
       >
         {loading && (
@@ -123,13 +132,14 @@ export default function GHMLLink({
       </button>
 
       {error && (
-        <span className="ml-2 text-xs text-red-600 font-mono">{error}</span>
+        <span className="ghml-link-error ml-2 text-xs text-red-600 font-mono">{error}</span>
       )}
 
       {inlineContent && (
         <div className="mt-2">
           <GHMLViewer
             content={inlineContent}
+            theme={theme}
             provider={provider}
             apiKey={apiKey}
             chainHistory={chainHistory}

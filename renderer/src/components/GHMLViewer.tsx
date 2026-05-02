@@ -3,9 +3,11 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import GHMLLink from './GHMLLink';
 import { ChainEntry, Provider } from '../executor/llm-executor';
+import { Theme } from '../types';
 
 interface GHMLViewerProps {
   content: string;
+  theme: Theme;
   provider: Provider;
   apiKey: string;
   chainHistory?: ChainEntry[];
@@ -16,8 +18,6 @@ interface GHMLViewerProps {
 
 const PLACEHOLDER_PREFIX = 'http://ghml-link.local/';
 
-// Matches [text](ghml:type "prompt" optional-attrs)
-// Handles escaped quotes inside the prompt string.
 const GHML_RE =
   /\[([^\]]+)\]\((ghml:(?:render|nav|action|embed)\s+"(?:[^"\\]|\\.)*"[^)]*)\)/g;
 
@@ -38,6 +38,7 @@ function preprocessContent(raw: string): {
 
 export default function GHMLViewer({
   content,
+  theme,
   provider,
   apiKey,
   chainHistory = [],
@@ -62,6 +63,7 @@ export default function GHMLViewer({
               return (
                 <GHMLLink
                   href={resolvedHref}
+                  theme={theme}
                   provider={provider}
                   apiKey={apiKey}
                   pageContent={content}
@@ -75,12 +77,7 @@ export default function GHMLViewer({
               );
             }
             return (
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
+              <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                 {children}
               </a>
             );
