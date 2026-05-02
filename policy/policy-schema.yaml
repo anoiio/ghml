@@ -1,0 +1,41 @@
+# GHML Policy Schema v0.1
+# Defines model allowlists and cost caps for a GHML renderer instance or document.
+#
+# A policy file is a YAML document conforming to this schema.
+# The renderer loads a named policy when a ghml: link specifies policy=<name>.
+# If no policy attribute is present, the renderer's default policy applies.
+
+# --- Schema ---
+
+# Required: unique identifier for this policy
+id: string                        # e.g. "default", "strict", "open"
+
+# Optional: human-readable description
+description: string
+
+# Schema version — must be "0.1"
+version: "0.1"
+
+# Model allowlist
+# If absent or empty list, all models are permitted.
+# If non-empty, only models in this list may be used by ghml: links.
+# A link requesting a model not in this list is rejected with a policy error.
+model_allowlist:
+  - string                        # exact model ID, e.g. "claude-opus-4-7"
+                                  #   or prefix glob, e.g. "claude-*"
+
+# Cost caps — enforce limits on LLM usage
+cost_caps:
+  # Maximum output tokens for a single LLM call.
+  # Maps to max_tokens in the API request.
+  # If absent, the renderer default (4096) applies.
+  max_tokens_per_request: integer  # e.g. 2048
+
+  # Maximum number of ghml: link clicks allowed per page load (session).
+  # After this limit is reached, all links are disabled.
+  # If absent, no per-session request limit is applied.
+  max_requests_per_session: integer  # e.g. 20
+
+  # Maximum total output tokens across all requests in a session.
+  # If absent, no per-session token cap is applied.
+  max_total_tokens_per_session: integer  # e.g. 50000

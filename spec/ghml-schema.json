@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ghml.dev/schema/link-attributes.json",
+  "title": "GHML Link Attributes",
+  "description": "Attributes for ghml: links in GHML documents (spec v0.1)",
+  "type": "object",
+  "properties": {
+    "model": {
+      "type": "string",
+      "description": "LLM model identifier. Any model ID accepted by the configured backend.",
+      "examples": ["claude-opus-4-7", "claude-haiku-4-5", "gpt-4o", "local"]
+    },
+    "context": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": ["page", "user", "selection", "data", "chain", "dom"],
+          "description": "Single context source to inject alongside the prompt."
+        },
+        {
+          "type": "string",
+          "pattern": "^(page|user|selection|data|chain|dom)(\\s+(page|user|selection|data|chain|dom))*$",
+          "description": "Space-separated list of context sources."
+        }
+      ]
+    },
+    "inline": {
+      "type": "boolean",
+      "description": "For 'action' type only: stream output at the link's position rather than in a separate view.",
+      "default": false
+    },
+    "width": {
+      "type": "string",
+      "enum": ["full", "half", "sidebar"],
+      "description": "Layout hint for 'embed' type. Ignored by other link types.",
+      "default": "full"
+    },
+    "cache": {
+      "type": "boolean",
+      "description": "Reuse a previously generated response when prompt + context fingerprint match.",
+      "default": false
+    },
+    "fallback": {
+      "type": "string",
+      "format": "uri",
+      "description": "Static URL to navigate to if the LLM backend is unavailable."
+    },
+    "policy": {
+      "type": "string",
+      "description": "Named policy identifier. The renderer looks up this policy in its policy store before dispatching the request."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "linkType": {
+      "type": "string",
+      "enum": ["render", "nav", "action", "embed"],
+      "description": "Determines how the LLM response is rendered and whether navigation occurs.",
+      "enumDescriptions": {
+        "render": "Replace the current viewport with LLM-generated content.",
+        "nav": "Replace viewport and push to browser history (back/forward supported).",
+        "action": "Stream result inline at link position; no navigation.",
+        "embed": "Render a self-contained widget inline."
+      }
+    },
+    "ghmlLink": {
+      "type": "object",
+      "description": "Parsed representation of a ghml: URI.",
+      "required": ["type", "prompt"],
+      "properties": {
+        "type": { "$ref": "#/$defs/linkType" },
+        "prompt": {
+          "type": "string",
+          "description": "The prompt string, after variable interpolation."
+        },
+        "attrs": { "$ref": "#" }
+      }
+    }
+  }
+}

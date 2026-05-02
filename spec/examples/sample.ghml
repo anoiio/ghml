@@ -1,0 +1,73 @@
+# GHML Sample Document
+
+Welcome to **Generative HyperText Markup Language**. Every link below dispatches a prompt
+to an LLM and generates its destination in real time.
+
+---
+
+## render — Full Page Generation
+
+Clicking these links replaces the current view with a freshly generated document.
+The generated document may itself contain `ghml:` links — this is the **recursive property**.
+
+[Introduction to GHML](ghml:render "Write a friendly 3-paragraph introduction to Generative HyperText Markup Language — what it is, why it matters, and how it differs from traditional HTML. End with 3 ghml:render links to explore: the architecture, use cases, and security model.")
+
+[Explore use cases](ghml:render "Generate a GHML document listing 6 compelling use cases for a document format where hyperlinks dispatch LLM prompts and generate destinations in real time. For each use case include a ghml:render link to generate a worked example." model=claude-opus-4-7)
+
+[Deep dive: architecture](ghml:render "Explain the 5-layer GHML architecture: Parser, Context Builder, Prompt Router, Stream Renderer, History Engine. One section per layer. Each section ends with a ghml:action link to show a code sketch for that layer." context=page)
+
+---
+
+## nav — Navigation with History
+
+Like `render`, but the browser back button works.
+
+[Start a guided tour](ghml:nav "Generate the first page of a 3-part guided tour of GHML. End with a ghml:nav link labelled 'Next: Link Types →' that generates part 2." model=claude-opus-4-7)
+
+---
+
+## action — Inline Results
+
+These stream output directly at the link's position — no navigation.
+
+[Summarise this page](ghml:action "Write a 2-sentence summary of the document above." context=page inline)
+
+[Generate 5 GHML link ideas](ghml:action "Suggest 5 creative ghml:render link prompts a developer might put in a product changelog document. Output as a numbered markdown list." inline)
+
+[What is selected?](ghml:action "Describe what the user has selected. If nothing is selected, say so." context=selection inline)
+
+---
+
+## embed — Inline Widgets
+
+Renders a self-contained widget at the link position.
+
+[Show a comparison table](ghml:embed "Generate a Markdown table comparing GHML, HTMX, and traditional hypermedia across 5 dimensions: authoring model, runtime, navigation, personalization, and LLM dependency." width=full)
+
+[Quick-reference card](ghml:embed "Generate a compact Markdown quick-reference card for GHML link syntax — type, prompt, and key attributes. Use a table." width=half)
+
+---
+
+## Data Binding
+
+Variables in `{{curly braces}}` are resolved at render time from user-configured data.
+
+[My personalised overview](ghml:render "Write a personalised GHML overview for {{user.name}}, who is a {{user.role}}. Tailor the examples to their background." context=user)
+
+---
+
+## Context Chaining
+
+Using `context=chain` threads the full navigation history into each new prompt.
+
+[Begin a narrative](ghml:nav "You are a narrator. Start a short interactive story. End with 2 ghml:nav links labelled with different story choices. Each choice link should use context=chain so the story continues coherently." context=chain model=claude-opus-4-7)
+
+---
+
+## Policy and Fallback
+
+[Sensitive operation](ghml:render "Explain prompt injection risks in GHML and propose mitigations." policy=strict fallback=https://example.com/ghml-security)
+
+---
+
+*This document is itself a `.ghml` file — load it in the GHML Renderer to make the links live.*
