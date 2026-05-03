@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import GHMLLink, { SessionCounters } from './GHMLLink';
@@ -53,45 +53,54 @@ export default function GHMLViewer({
   depth = 0,
 }: GHMLViewerProps) {
   const { processed, uriMap } = useMemo(() => preprocessContent(content ?? ''), [content]);
+
+  // Store sessionCounters in a ref so the memoized `components` object can read
+  // the latest value without being recreated on every counter update.
+  // If `components` were recreated, ReactMarkdown would unmount+remount GHMLLink
+  // and destroy its local `inlineContent` state (causing the flash-and-disappear bug).
+  const countersRef = useRef(sessionCounters);
+  countersRef.current = sessionCounters;
+
+  const components = useMemo(() => ({
+    a({ href, children }: { href?: string; children?: React.ReactNode }) {
+      const resolvedHref =
+        href?.startsWith(PLACEHOLDER_PREFIX) ? uriMap.get(href) ?? href : href;
+
+      if (resolvedHref?.startsWith('ghml:')) {
+        return (
+          <GHMLLink
+            href={resolvedHref}
+            theme={theme}
+            provider={provider}
+            apiKey={apiKey}
+            policyId={policyId}
+            getCounters={() => countersRef.current}
+            onCountersUpdate={onCountersUpdate}
+            pageContent={content}
+            chainHistory={chainHistory}
+            userVariables={userVariables}
+            onNavigate={onNavigate}
+            depth={depth}
+          >
+            {children}
+          </GHMLLink>
+        );
+      }
+      return (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+          {children}
+        </a>
+      );
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [theme, provider, apiKey, policyId, content, chainHistory, userVariables, onNavigate, depth, onCountersUpdate]);
+  // Note: sessionCounters intentionally excluded — accessed via countersRef to prevent remounts.
+
   if (!content) return null;
 
   return (
     <div className={`ghml-content${depth > 0 ? ' ghml-nested' : ''}`}>
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          a({ href, children }) {
-            const resolvedHref =
-              href?.startsWith(PLACEHOLDER_PREFIX) ? uriMap.get(href) ?? href : href;
-
-            if (resolvedHref?.startsWith('ghml:')) {
-              return (
-                <GHMLLink
-                  href={resolvedHref}
-                  theme={theme}
-                  provider={provider}
-                  apiKey={apiKey}
-                  policyId={policyId}
-                  sessionCounters={sessionCounters}
-                  onCountersUpdate={onCountersUpdate}
-                  pageContent={content}
-                  chainHistory={chainHistory}
-                  userVariables={userVariables}
-                  onNavigate={onNavigate}
-                  depth={depth}
-                >
-                  {children}
-                </GHMLLink>
-              );
-            }
-            return (
-              <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                {children}
-              </a>
-            );
-          },
-        }}
-      >
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {processed}
       </ReactMarkdown>
     </div>

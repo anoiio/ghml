@@ -17,7 +17,7 @@ interface GHMLLinkProps {
   provider: Provider;
   apiKey: string;
   policyId: string;
-  sessionCounters: SessionCounters;
+  getCounters: () => SessionCounters;
   onCountersUpdate: (counters: SessionCounters) => void;
   pageContent: string;
   chainHistory: ChainEntry[];
@@ -47,7 +47,7 @@ export default function GHMLLink({
   provider,
   apiKey,
   policyId,
-  sessionCounters,
+  getCounters,
   onCountersUpdate,
   pageContent,
   chainHistory,
@@ -69,13 +69,14 @@ export default function GHMLLink({
     // Resolve effective policy: link attribute overrides session policy
     const effectivePolicyId = link.attrs.policy ?? policyId;
     const policy = POLICIES[effectivePolicyId] ?? POLICIES.none;
+    const counters = getCounters();
 
     // Enforce policy before dispatch
-    if (sessionCounters.requests >= policy.cost_caps.max_requests_per_session) {
+    if (counters.requests >= policy.cost_caps.max_requests_per_session) {
       setError(`Policy "${effectivePolicyId}": request limit reached (${policy.cost_caps.max_requests_per_session})`);
       return;
     }
-    if (sessionCounters.tokens >= policy.cost_caps.max_total_tokens_per_session) {
+    if (counters.tokens >= policy.cost_caps.max_total_tokens_per_session) {
       setError(`Policy "${effectivePolicyId}": token budget exhausted`);
       return;
     }
@@ -116,8 +117,8 @@ export default function GHMLLink({
         onDone: (_text, tokenCount) => {
           setLoading(false);
           onCountersUpdate({
-            requests: sessionCounters.requests + 1,
-            tokens: sessionCounters.tokens + tokenCount,
+            requests: getCounters().requests + 1,
+            tokens: getCounters().tokens + tokenCount,
           });
         },
         onError: (err) => { setError(err.message); setLoading(false); },
@@ -135,8 +136,8 @@ export default function GHMLLink({
         onDone: (text, tokenCount) => {
           setLoading(false);
           onCountersUpdate({
-            requests: sessionCounters.requests + 1,
-            tokens: sessionCounters.tokens + tokenCount,
+            requests: getCounters().requests + 1,
+            tokens: getCounters().tokens + tokenCount,
           });
           const newChain: ChainEntry[] = [
             ...chainHistory,
@@ -147,7 +148,7 @@ export default function GHMLLink({
         onError: (err) => { setError(err.message); setLoading(false); },
       });
     }
-  }, [link, isReady, policyId, sessionCounters, onCountersUpdate, provider, apiKey, pageContent, chainHistory, userVariables, onNavigate]);
+  }, [link, isReady, policyId, getCounters, onCountersUpdate, provider, apiKey, pageContent, chainHistory, userVariables, onNavigate]);
 
   if (!link) {
     return <a href={href} className="text-blue-600 hover:underline">{children}</a>;
@@ -188,7 +189,7 @@ export default function GHMLLink({
             provider={provider}
             apiKey={apiKey}
             policyId={policyId}
-            sessionCounters={sessionCounters}
+            sessionCounters={getCounters()}
             onCountersUpdate={onCountersUpdate}
             chainHistory={chainHistory}
             userVariables={userVariables}
