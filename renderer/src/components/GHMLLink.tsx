@@ -22,7 +22,7 @@ interface GHMLLinkProps {
   pageContent: string;
   chainHistory: ChainEntry[];
   userVariables: Record<string, unknown>;
-  onNavigate?: (content: string, newChain: ChainEntry[]) => void;
+  onNavigate?: (content: string, newChain: ChainEntry[], pushHistory?: boolean) => void;
   depth: number;
 }
 
@@ -143,7 +143,7 @@ export default function GHMLLink({
             ...chainHistory,
             { prompt: resolvedPrompt, response: text },
           ];
-          onNavigate?.(text, newChain);
+          onNavigate?.(text, newChain, link.type === 'nav');
         },
         onError: (err) => { setError(err.message); setLoading(false); },
       });

@@ -15,7 +15,7 @@ interface GHMLViewerProps {
   onCountersUpdate: (counters: SessionCounters) => void;
   chainHistory?: ChainEntry[];
   userVariables?: Record<string, unknown>;
-  onNavigate?: (content: string, newChain: ChainEntry[]) => void;
+  onNavigate?: (content: string, newChain: ChainEntry[], pushHistory?: boolean) => void;
   depth?: number;
 }
 

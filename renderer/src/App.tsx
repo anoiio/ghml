@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import GHMLViewer from './components/GHMLViewer';
 import Settings from './components/Settings';
 import FileLoader from './components/FileLoader';
@@ -64,7 +64,24 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showSource, setShowSource] = useState(false);
 
-  const handleNavigate = useCallback((content: string, newChain: ChainEntry[]) => {
+  useEffect(() => {
+    window.history.replaceState({ content: DEFAULT_CONTENT, chainHistory: [] }, '');
+    const onPopState = (e: PopStateEvent) => {
+      if (e.state) {
+        setCurrentDoc(e.state.content ?? DEFAULT_CONTENT);
+        setChainHistory(e.state.chainHistory ?? []);
+        setShowSource(false);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const handleNavigate = useCallback((content: string, newChain: ChainEntry[], pushHistory = false) => {
+    if (pushHistory) {
+      window.history.pushState({ content, chainHistory: newChain }, '');
+    }
     setCurrentDoc(content);
     setChainHistory(newChain);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -91,6 +108,7 @@ export default function App() {
   }, []);
 
   const handleHome = useCallback(() => {
+    window.history.replaceState({ content: DEFAULT_CONTENT, chainHistory: [] }, '');
     setCurrentDoc(DEFAULT_CONTENT);
     setChainHistory([]);
     setShowSource(false);
@@ -99,6 +117,7 @@ export default function App() {
   }, [resetSession]);
 
   const handleLoadFile = useCallback((content: string) => {
+    window.history.replaceState({ content, chainHistory: [] }, '');
     setCurrentDoc(content);
     setChainHistory([]);
     setShowSource(false);
