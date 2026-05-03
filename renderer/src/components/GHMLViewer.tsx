@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import GHMLLink, { SessionCounters } from './GHMLLink';
 import GHMLInput from './GHMLInput';
+import GHMLDeadEnd from './GHMLDeadEnd';
 import { parseGHMLUri } from '../parser/ghml-parser';
 import { ChainEntry, Provider } from '../executor/llm-executor';
 import { Theme } from '../types';
@@ -122,11 +123,30 @@ export default function GHMLViewer({
 
   if (!content) return null;
 
+  // Show escape hatch when LLM-generated content has no actionable ghml: links.
+  // Exclude input-only pages (uriMap entries that are all input type) — inputs aren't navigation.
+  const hasActionableLinks = [...uriMap.values()].some(
+    (uri) => !uri.startsWith('ghml:input'),
+  );
+  const isDeadEnd = depth === 0 && chainHistory.length > 0 && !hasActionableLinks;
+
   return (
     <div className={`ghml-content${depth > 0 ? ' ghml-nested' : ''}`}>
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {processed}
       </ReactMarkdown>
+      {isDeadEnd && (
+        <GHMLDeadEnd
+          theme={theme}
+          provider={provider}
+          apiKey={apiKey}
+          policyId={policyId}
+          getCounters={() => countersRef.current}
+          onCountersUpdate={onCountersUpdate}
+          chainHistory={chainHistory}
+          onNavigate={onNavigate}
+        />
+      )}
     </div>
   );
 }
