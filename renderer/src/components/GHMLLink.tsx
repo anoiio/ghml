@@ -21,7 +21,7 @@ interface GHMLLinkProps {
   onCountersUpdate: (counters: SessionCounters) => void;
   pageContent: string;
   chainHistory: ChainEntry[];
-  userVariables: Record<string, unknown>;
+  getUserVariables: () => Record<string, unknown>;
   onNavigate?: (content: string, newChain: ChainEntry[], pushHistory?: boolean) => void;
   depth: number;
   isImageLink?: boolean;
@@ -52,7 +52,7 @@ export default function GHMLLink({
   onCountersUpdate,
   pageContent,
   chainHistory,
-  userVariables,
+  getUserVariables,
   onNavigate,
   depth,
   isImageLink = false,
@@ -96,6 +96,7 @@ export default function GHMLLink({
     setLoading(true);
     setInlineContent('');
 
+    const userVariables = getUserVariables();
     let resolvedPrompt = link.prompt;
     if (link.attrs.context?.includes('selection')) {
       const selection = window.getSelection()?.toString() ?? '';
@@ -150,7 +151,7 @@ export default function GHMLLink({
         onError: (err) => { setError(err.message); setLoading(false); },
       });
     }
-  }, [link, isReady, policyId, getCounters, onCountersUpdate, provider, apiKey, pageContent, chainHistory, userVariables, onNavigate]);
+  }, [link, isReady, policyId, getCounters, onCountersUpdate, provider, apiKey, pageContent, chainHistory, getUserVariables, onNavigate]);
 
   if (!link) {
     return <a href={href} className="text-blue-600 hover:underline">{children}</a>;
@@ -169,7 +170,7 @@ export default function GHMLLink({
         sessionCounters={getCounters()}
         onCountersUpdate={onCountersUpdate}
         chainHistory={chainHistory}
-        userVariables={userVariables}
+        userVariables={getUserVariables()}
         onNavigate={onNavigate}
         depth={depth + 1}
       />

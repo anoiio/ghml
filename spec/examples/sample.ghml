@@ -48,6 +48,23 @@ Renders a self-contained widget at the link position.
 
 ---
 
+## User Input
+
+`ghml:input` fields let the user type values that are injected as `{{variables}}` into any link on the same page.
+
+[Username](ghml:input "user.name" placeholder="Enter your username")
+[Password](ghml:input "user.password" type=password placeholder="Enter your password")
+
+[Log in](ghml:render "The user {{user.name}} just authenticated. Generate a warm, personalised welcome screen and dashboard overview for them. Include 3 ghml:action links for quick tasks relevant to a developer." model=claude-opus-4-7)
+
+---
+
+[Search topic](ghml:input "query" placeholder="e.g. prompt injection")
+
+[Search](ghml:render "Write a comprehensive GHML document about: {{query}}. Include a brief overview, key concepts, and 3–5 ghml:nav links to explore related subtopics." model=claude-opus-4-7)
+
+---
+
 ## Data Binding
 
 Variables in `{{curly braces}}` are resolved at render time from user-configured data.

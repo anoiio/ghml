@@ -2,6 +2,8 @@ import React, { useMemo, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import GHMLLink, { SessionCounters } from './GHMLLink';
+import GHMLInput from './GHMLInput';
+import { parseGHMLUri } from '../parser/ghml-parser';
 import { ChainEntry, Provider } from '../executor/llm-executor';
 import { Theme } from '../types';
 
@@ -21,9 +23,9 @@ interface GHMLViewerProps {
 
 const PLACEHOLDER_PREFIX = 'http://ghml-link.local/';
 
-// Matches ](ghml:...) — works for both text links and image links ([![alt](img)](ghml:...))
+// Matches ](ghml:...) — works for text links, image links, and input fields
 const GHML_RE =
-  /\]\((ghml:(?:render|nav|action|embed)\s+"(?:[^"\\]|\\.)*"[^)]*)\)/g;
+  /\]\((ghml:(?:render|nav|action|embed|input)\s+"(?:[^"\\]|\\.)*"[^)]*)\)/g;
 
 function preprocessContent(raw: string): {
   processed: string;
@@ -62,12 +64,29 @@ export default function GHMLViewer({
   const countersRef = useRef(sessionCounters);
   countersRef.current = sessionCounters;
 
+  // Input field values — written by GHMLInput on change, read lazily by GHMLLink at click time.
+  const inputValuesRef = useRef<Record<string, string>>({});
+
   const components = useMemo(() => ({
     a({ href, children }: { href?: string; children?: React.ReactNode }) {
       const resolvedHref =
         href?.startsWith(PLACEHOLDER_PREFIX) ? uriMap.get(href) ?? href : href;
 
       if (resolvedHref?.startsWith('ghml:')) {
+        const parsedLink = parseGHMLUri(resolvedHref);
+
+        if (parsedLink?.type === 'input') {
+          return (
+            <GHMLInput
+              link={parsedLink}
+              theme={theme}
+              onInputChange={(varName, value) => { inputValuesRef.current[varName] = value; }}
+            >
+              {children}
+            </GHMLInput>
+          );
+        }
+
         const isImageLink = React.Children.toArray(children).some(
           (child) => React.isValidElement(child) && child.type === 'img',
         );
@@ -82,7 +101,7 @@ export default function GHMLViewer({
             onCountersUpdate={onCountersUpdate}
             pageContent={content}
             chainHistory={chainHistory}
-            userVariables={userVariables}
+            getUserVariables={() => ({ ...userVariables, ...inputValuesRef.current })}
             onNavigate={onNavigate}
             depth={depth}
             isImageLink={isImageLink}

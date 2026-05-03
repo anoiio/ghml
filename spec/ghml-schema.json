@@ -48,19 +48,29 @@
     "policy": {
       "type": "string",
       "description": "Named policy identifier. The renderer looks up this policy in its policy store before dispatching the request."
+    },
+    "placeholder": {
+      "type": "string",
+      "description": "For 'input' type only: hint text shown inside the field when empty."
+    },
+    "type": {
+      "type": "string",
+      "description": "For 'input' type only: HTML input type (text, password, email, number, …). Defaults to 'text'.",
+      "default": "text"
     }
   },
   "additionalProperties": false,
   "$defs": {
     "linkType": {
       "type": "string",
-      "enum": ["render", "nav", "action", "embed"],
+      "enum": ["render", "nav", "action", "embed", "input"],
       "description": "Determines how the LLM response is rendered and whether navigation occurs.",
       "enumDescriptions": {
         "render": "Replace the current viewport with LLM-generated content.",
         "nav": "Replace viewport and push to browser history (back/forward supported).",
         "action": "Stream result inline at link position; no navigation.",
-        "embed": "Render a self-contained widget inline."
+        "embed": "Render a self-contained widget inline.",
+        "input": "Render an interactive input field; its value is bound to a named variable available to all links on the page."
       }
     },
     "ghmlLink": {

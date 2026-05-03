@@ -1,4 +1,4 @@
-export type LinkType = 'render' | 'nav' | 'action' | 'embed';
+export type LinkType = 'render' | 'nav' | 'action' | 'embed' | 'input';
 
 export interface GHMLAttrs {
   model?: string;
@@ -8,6 +8,9 @@ export interface GHMLAttrs {
   cache?: boolean;
   fallback?: string;
   policy?: string;
+  // input-specific
+  placeholder?: string;
+  type?: string;
 }
 
 export interface GHMLLink {
@@ -17,7 +20,7 @@ export interface GHMLLink {
   raw: string;
 }
 
-const LINK_TYPES: LinkType[] = ['render', 'nav', 'action', 'embed'];
+const LINK_TYPES: LinkType[] = ['render', 'nav', 'action', 'embed', 'input'];
 
 export function parseGHMLUri(uri: string): GHMLLink | null {
   if (!uri.startsWith('ghml:')) return null;
@@ -25,7 +28,7 @@ export function parseGHMLUri(uri: string): GHMLLink | null {
   let rest = uri.slice(5);
 
   // Match link type
-  const typeMatch = rest.match(/^(render|nav|action|embed)\s+/);
+  const typeMatch = rest.match(/^(render|nav|action|embed|input)\s+/);
   if (!typeMatch) return null;
   const type = typeMatch[1] as LinkType;
   if (!LINK_TYPES.includes(type)) return null;
@@ -86,9 +89,11 @@ function setAttr(attrs: GHMLAttrs, key: string, value: string): void {
         attrs.width = value;
       break;
     case 'fallback': attrs.fallback = value; break;
-    case 'policy':   attrs.policy   = value; break;
-    case 'inline':   attrs.inline   = value !== 'false'; break;
-    case 'cache':    attrs.cache    = value !== 'false'; break;
+    case 'policy':      attrs.policy      = value; break;
+    case 'inline':      attrs.inline      = value !== 'false'; break;
+    case 'cache':       attrs.cache       = value !== 'false'; break;
+    case 'placeholder': attrs.placeholder = value; break;
+    case 'type':        attrs.type        = value; break;
   }
 }
 

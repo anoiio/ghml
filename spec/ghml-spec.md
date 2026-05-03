@@ -42,7 +42,7 @@ link-text        ::= text-content
 
 (* GHML URI *)
 ghml-uri         ::= "ghml:" link-type SP quoted-prompt attribute-list
-link-type        ::= "render" | "nav" | "action" | "embed"
+link-type        ::= "render" | "nav" | "action" | "embed" | "input"
 quoted-prompt    ::= DQUOTE prompt-body DQUOTE
 prompt-body      ::= *( prompt-char | interpolation )
 prompt-char      ::= any-char-except-DQUOTE-and-backslash
@@ -87,6 +87,10 @@ VCHAR            ::= %x21-7E
 [Explore further](ghml:nav "Dive deeper into the topic of {{topic}}" context=chain)
 
 [Live chart](ghml:embed "Create a bar chart widget for the sales figures" width=full context=data)
+
+[Username](ghml:input "user.name" placeholder="Enter your username")
+[Password](ghml:input "user.password" type=password placeholder="Enter your password")
+[Log in](ghml:render "Welcome {{user.name}}! Generate a personalised dashboard for them.")
 ```
 
 ---
@@ -99,6 +103,7 @@ VCHAR            ::= %x21-7E
 | `nav` | Like `render` but pushes to browser history (back/forward works) |
 | `action` | LLM performs a task and streams the result inline at link position; no navigation |
 | `embed` | LLM renders a self-contained widget inline (chart, form, mini-app) |
+| `input` | Renders an interactive input field; its value is bound to a named variable available to all other links on the same page |
 
 ---
 
@@ -115,6 +120,8 @@ See `ghml-schema.json` for the normative JSON Schema definition.
 | `cache` | flag | Reuse a previously generated response for identical prompt+context |
 | `fallback` | URI | Static URL to navigate to if the LLM is unavailable |
 | `policy` | string | Named policy to apply for this link (see §8) |
+| `placeholder` | string | Hint text shown inside an `input` field when empty |
+| `type` | string | HTML input type for `input` fields: `text` (default), `password`, `email`, `number`, … |
 
 ---
 
@@ -144,6 +151,18 @@ Prompt strings support `{{variable}}` interpolation, resolved at render time aga
 ```
 
 Variable paths use dot notation (`user.name`, `data.sales.q4`). Unresolved variables are left as-is in the prompt.
+
+### 7.1 User Input Fields
+
+`ghml:input` links render as labelled input fields whose live values are automatically available as `{{variables}}` to every other link on the same page. The quoted string is the variable name; link text becomes the visible label.
+
+```markdown
+[Search](ghml:input "query" placeholder="Enter a topic")
+
+[Go](ghml:render "Write a detailed guide about: {{query}}")
+```
+
+The variable binding is page-scoped: input values are collected at click time and merged with any session-level user variables, with input values taking precedence.
 
 ---
 
