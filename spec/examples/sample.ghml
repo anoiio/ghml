@@ -64,6 +64,19 @@ Using `context=chain` threads the full navigation history into each new prompt.
 
 ---
 
+## Clickable Images
+
+Any Markdown image can be wrapped in a `ghml:` link using standard image-link syntax.
+The image renders normally; clicking it dispatches the prompt.
+
+[![Abstract geometric art](https://picsum.photos/seed/ghml-geo/600/300)](ghml:action "Describe the mood, color palette, and composition of this image in 2–3 sentences." inline)
+
+[![A misty mountain landscape](https://picsum.photos/seed/ghml-mountain/600/300)](ghml:render "You are a travel writer. Write a vivid one-page destination guide inspired by this mountain landscape. End with 3 ghml:nav links for related destinations." model=claude-opus-4-7)
+
+[![City skyline at dusk](https://picsum.photos/seed/ghml-city/600/300)](ghml:nav "Begin an interactive noir mystery story set in this city. Introduce the protagonist and end with 2 ghml:nav links representing different leads to follow. Use context=chain on each." context=chain model=claude-opus-4-7)
+
+---
+
 ## Policy and Fallback
 
 [Sensitive operation](ghml:render "Explain prompt injection risks in GHML and propose mitigations." policy=strict fallback=https://example.com/ghml-security)
