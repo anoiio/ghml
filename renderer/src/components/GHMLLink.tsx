@@ -24,6 +24,7 @@ interface GHMLLinkProps {
   userVariables: Record<string, unknown>;
   onNavigate?: (content: string, newChain: ChainEntry[], pushHistory?: boolean) => void;
   depth: number;
+  isImageLink?: boolean;
 }
 
 const TYPE_COLORS_CLEAN: Record<string, string> = {
@@ -54,6 +55,7 @@ export default function GHMLLink({
   userVariables,
   onNavigate,
   depth,
+  isImageLink = false,
 }: GHMLLinkProps) {
   const [loading, setLoading] = useState(false);
   const [inlineContent, setInlineContent] = useState('');
@@ -156,6 +158,61 @@ export default function GHMLLink({
 
   const colorClass = colors[link.type] ?? colors.render;
 
+  const inlineResult = inlineContent && (
+    <div className="mt-2">
+      <GHMLViewer
+        content={inlineContent}
+        theme={theme}
+        provider={provider}
+        apiKey={apiKey}
+        policyId={policyId}
+        sessionCounters={getCounters()}
+        onCountersUpdate={onCountersUpdate}
+        chainHistory={chainHistory}
+        userVariables={userVariables}
+        onNavigate={onNavigate}
+        depth={depth + 1}
+      />
+    </div>
+  );
+
+  if (isImageLink) {
+    return (
+      <span className="inline-block my-0.5">
+        <button
+          onClick={handleClick}
+          disabled={!isReady}
+          title={`[${link.type}] ${link.prompt.slice(0, 80)}${link.prompt.length > 80 ? '…' : ''}`}
+          className={[
+            'relative block rounded-lg overflow-hidden cursor-pointer group',
+            loading ? 'cursor-wait' : '',
+            !isReady && !loading ? 'opacity-30 cursor-not-allowed' : '',
+          ].join(' ')}
+        >
+          {children}
+          {!loading && isReady && (
+            <span className="absolute inset-0 group-hover:bg-black/15 transition-colors" />
+          )}
+          {loading && (
+            <span className="absolute inset-0 flex items-center justify-center bg-black/45">
+              <span className="w-8 h-8 border-[3px] border-white border-t-transparent rounded-full animate-spin" />
+            </span>
+          )}
+          <span className={[
+            'absolute bottom-1.5 right-1.5 font-mono text-[0.6rem] px-1 py-0.5 rounded border',
+            colorClass,
+          ].join(' ')}>
+            [{link.type}]
+          </span>
+        </button>
+        {error && (
+          <span className="ghml-link-error block mt-1 text-xs text-red-600 font-mono">{error}</span>
+        )}
+        {inlineResult}
+      </span>
+    );
+  }
+
   return (
     <span className="inline-block my-0.5">
       <button
@@ -181,23 +238,7 @@ export default function GHMLLink({
         <span className="ghml-link-error ml-2 text-xs text-red-600 font-mono">{error}</span>
       )}
 
-      {inlineContent && (
-        <div className="mt-2">
-          <GHMLViewer
-            content={inlineContent}
-            theme={theme}
-            provider={provider}
-            apiKey={apiKey}
-            policyId={policyId}
-            sessionCounters={getCounters()}
-            onCountersUpdate={onCountersUpdate}
-            chainHistory={chainHistory}
-            userVariables={userVariables}
-            onNavigate={onNavigate}
-            depth={depth + 1}
-          />
-        </div>
-      )}
+      {inlineResult}
     </span>
   );
 }

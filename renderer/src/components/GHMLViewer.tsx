@@ -21,8 +21,9 @@ interface GHMLViewerProps {
 
 const PLACEHOLDER_PREFIX = 'http://ghml-link.local/';
 
+// Matches ](ghml:...) — works for both text links and image links ([![alt](img)](ghml:...))
 const GHML_RE =
-  /\[([^\]]+)\]\((ghml:(?:render|nav|action|embed)\s+"(?:[^"\\]|\\.)*"[^)]*)\)/g;
+  /\]\((ghml:(?:render|nav|action|embed)\s+"(?:[^"\\]|\\.)*"[^)]*)\)/g;
 
 function preprocessContent(raw: string): {
   processed: string;
@@ -30,11 +31,11 @@ function preprocessContent(raw: string): {
 } {
   const uriMap = new Map<string, string>();
   let idx = 0;
-  const processed = raw.replace(GHML_RE, (_match, text, uri) => {
+  const processed = raw.replace(GHML_RE, (_match, uri) => {
     const placeholder = `${PLACEHOLDER_PREFIX}${idx}`;
     uriMap.set(placeholder, uri);
     idx++;
-    return `[${text}](${placeholder})`;
+    return `](${placeholder})`;
   });
   return { processed, uriMap };
 }
@@ -67,6 +68,9 @@ export default function GHMLViewer({
         href?.startsWith(PLACEHOLDER_PREFIX) ? uriMap.get(href) ?? href : href;
 
       if (resolvedHref?.startsWith('ghml:')) {
+        const isImageLink = React.Children.toArray(children).some(
+          (child) => React.isValidElement(child) && child.type === 'img',
+        );
         return (
           <GHMLLink
             href={resolvedHref}
@@ -81,6 +85,7 @@ export default function GHMLViewer({
             userVariables={userVariables}
             onNavigate={onNavigate}
             depth={depth}
+            isImageLink={isImageLink}
           >
             {children}
           </GHMLLink>
