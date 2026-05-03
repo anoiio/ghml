@@ -12,11 +12,12 @@ export interface ExecuteOptions {
   link: GHMLLink;
   provider: Provider;
   apiKey: string;
+  maxTokens?: number;
   pageContent?: string;
   chainHistory?: ChainEntry[];
   userVariables?: Record<string, unknown>;
   onToken: (accumulated: string) => void;
-  onDone: (final: string) => void;
+  onDone: (final: string, tokenCount: number) => void;
   onError: (error: Error) => void;
 }
 
@@ -40,7 +41,7 @@ GHML LINK EXAMPLES:
 [Compare options](ghml:render "Compare A vs B across 5 dimensions" context=chain)`.trim();
 
 export async function executeGHMLLink(options: ExecuteOptions): Promise<void> {
-  const { link, provider, apiKey, pageContent, chainHistory = [], onToken, onDone, onError } = options;
+  const { link, provider, apiKey, maxTokens = 4096, pageContent, chainHistory = [], onToken, onDone, onError } = options;
 
   // Build context additions (shared by both providers)
   const contextParts: string[] = [];
@@ -63,7 +64,7 @@ export async function executeGHMLLink(options: ExecuteOptions): Promise<void> {
     const systemWithContext = [GHML_SYSTEM_BASE, ...contextParts].join('\n\n');
     await executeWithCLI(userMessage, systemWithContext, onToken, onDone, onError);
   } else {
-    await executeWithAPI(link, userMessage, contextParts, apiKey, onToken, onDone, onError);
+    await executeWithAPI(link, userMessage, contextParts, apiKey, maxTokens, onToken, onDone, onError);
   }
 }
 
@@ -74,8 +75,9 @@ async function executeWithAPI(
   userMessage: string,
   contextParts: string[],
   apiKey: string,
+  maxTokens: number,
   onToken: (accumulated: string) => void,
-  onDone: (final: string) => void,
+  onDone: (final: string, tokenCount: number) => void,
   onError: (error: Error) => void,
 ): Promise<void> {
   const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
@@ -84,7 +86,7 @@ async function executeWithAPI(
     {
       type: 'text',
       text: GHML_SYSTEM_BASE,
-      cache_control: { type: 'ephemeral' }, // prompt caching on the stable prefix
+      cache_control: { type: 'ephemeral' },
     },
     ...contextParts.map((text): Anthropic.TextBlockParam => ({ type: 'text', text: `\n\n${text}` })),
   ];
@@ -95,7 +97,7 @@ async function executeWithAPI(
   try {
     const stream = client.messages.stream({
       model,
-      max_tokens: 4096,
+      max_tokens: maxTokens,
       thinking: { type: 'adaptive' },
       system: systemBlocks,
       messages: [{ role: 'user', content: userMessage }],
@@ -108,8 +110,8 @@ async function executeWithAPI(
       }
     }
 
-    await stream.finalMessage();
-    onDone(accumulated);
+    const finalMsg = await stream.finalMessage();
+    onDone(accumulated, finalMsg.usage.output_tokens);
   } catch (error) {
     onError(error instanceof Error ? error : new Error(String(error)));
   }
@@ -121,7 +123,7 @@ async function executeWithCLI(
   prompt: string,
   system: string,
   onToken: (accumulated: string) => void,
-  onDone: (final: string) => void,
+  onDone: (final: string, tokenCount: number) => void,
   onError: (error: Error) => void,
 ): Promise<void> {
   let accumulated = '';
@@ -157,7 +159,7 @@ async function executeWithCLI(
             accumulated += event.text;
             onToken(accumulated);
           } else if (event.type === 'done') {
-            onDone(accumulated);
+            onDone(accumulated, Math.ceil(accumulated.length / 4));
             return;
           } else if (event.type === 'error') {
             onError(new Error(event.message ?? 'CLI error'));
@@ -169,7 +171,7 @@ async function executeWithCLI(
       }
     }
 
-    onDone(accumulated);
+    onDone(accumulated, Math.ceil(accumulated.length / 4));
   } catch (error) {
     onError(error instanceof Error ? error : new Error(String(error)));
   }

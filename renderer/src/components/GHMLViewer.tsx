@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import GHMLLink from './GHMLLink';
+import GHMLLink, { SessionCounters } from './GHMLLink';
 import { ChainEntry, Provider } from '../executor/llm-executor';
 import { Theme } from '../types';
 
@@ -10,6 +10,9 @@ interface GHMLViewerProps {
   theme: Theme;
   provider: Provider;
   apiKey: string;
+  policyId: string;
+  sessionCounters: SessionCounters;
+  onCountersUpdate: (counters: SessionCounters) => void;
   chainHistory?: ChainEntry[];
   userVariables?: Record<string, unknown>;
   onNavigate?: (content: string, newChain: ChainEntry[]) => void;
@@ -41,6 +44,9 @@ export default function GHMLViewer({
   theme,
   provider,
   apiKey,
+  policyId,
+  sessionCounters,
+  onCountersUpdate,
   chainHistory = [],
   userVariables = {},
   onNavigate,
@@ -65,6 +71,9 @@ export default function GHMLViewer({
                   theme={theme}
                   provider={provider}
                   apiKey={apiKey}
+                  policyId={policyId}
+                  sessionCounters={sessionCounters}
+                  onCountersUpdate={onCountersUpdate}
                   pageContent={content}
                   chainHistory={chainHistory}
                   userVariables={userVariables}

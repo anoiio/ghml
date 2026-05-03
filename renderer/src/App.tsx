@@ -4,6 +4,7 @@ import Settings from './components/Settings';
 import FileLoader from './components/FileLoader';
 import { ChainEntry, Provider } from './executor/llm-executor';
 import { Theme } from './types';
+import { SessionCounters } from './components/GHMLLink';
 
 const DEFAULT_CONTENT = `# Welcome to GHML
 
@@ -51,6 +52,10 @@ export default function App() {
   const [provider, setProvider] = useState<Provider>(
     () => (localStorage.getItem('ghml-provider') as Provider | null) ?? 'api',
   );
+  const [policyId, setPolicyId] = useState<string>(
+    () => localStorage.getItem('ghml-policy') ?? 'none',
+  );
+  const [sessionCounters, setSessionCounters] = useState<SessionCounters>({ requests: 0, tokens: 0 });
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('ghml-api-key') ?? '');
   const [userVariables, setUserVariables] = useState<Record<string, unknown>>(() => {
     try { return JSON.parse(localStorage.getItem('ghml-vars') ?? '{}'); }
@@ -66,31 +71,39 @@ export default function App() {
   }, []);
 
   const handleSaveSettings = useCallback(
-    (newTheme: Theme, newProvider: Provider, key: string, vars: Record<string, unknown>) => {
+    (newTheme: Theme, newProvider: Provider, newPolicyId: string, key: string, vars: Record<string, unknown>) => {
       setTheme(newTheme);
       setProvider(newProvider);
+      setPolicyId(newPolicyId);
       setApiKey(key);
       setUserVariables(vars);
       localStorage.setItem('ghml-theme', newTheme);
       localStorage.setItem('ghml-provider', newProvider);
+      localStorage.setItem('ghml-policy', newPolicyId);
       localStorage.setItem('ghml-api-key', key);
       localStorage.setItem('ghml-vars', JSON.stringify(vars));
     },
     [],
   );
 
+  const resetSession = useCallback(() => {
+    setSessionCounters({ requests: 0, tokens: 0 });
+  }, []);
+
   const handleHome = useCallback(() => {
     setCurrentDoc(DEFAULT_CONTENT);
     setChainHistory([]);
     setShowSource(false);
+    resetSession();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  }, [resetSession]);
 
   const handleLoadFile = useCallback((content: string) => {
     setCurrentDoc(content);
     setChainHistory([]);
     setShowSource(false);
-  }, []);
+    resetSession();
+  }, [resetSession]);
 
   const needsApiKey = provider === 'api' && !apiKey;
 
@@ -116,9 +129,21 @@ export default function App() {
           </span>
         )}
 
+        {policyId !== 'none' && (
+          <span className="text-xs font-mono text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded hidden sm:inline">
+            policy: {policyId}
+          </span>
+        )}
+
+        {sessionCounters.requests > 0 && (
+          <span className="text-xs text-gray-400 font-mono hidden sm:inline hop-counter">
+            {sessionCounters.requests} req · {sessionCounters.tokens.toLocaleString()} tok
+          </span>
+        )}
+
         {chainHistory.length > 0 && (
           <span className="text-xs text-gray-400 font-mono hidden sm:inline hop-counter">
-            {chainHistory.length} hop{chainHistory.length !== 1 ? 's' : ''} deep
+            {chainHistory.length} hop{chainHistory.length !== 1 ? 's' : ''}
           </span>
         )}
 
@@ -165,6 +190,9 @@ export default function App() {
             theme={theme}
             provider={provider}
             apiKey={apiKey}
+            policyId={policyId}
+            sessionCounters={sessionCounters}
+            onCountersUpdate={setSessionCounters}
             chainHistory={chainHistory}
             userVariables={userVariables}
             onNavigate={handleNavigate}
@@ -176,6 +204,7 @@ export default function App() {
         <Settings
           theme={theme}
           provider={provider}
+          policyId={policyId}
           apiKey={apiKey}
           userVariables={userVariables}
           onSave={handleSaveSettings}

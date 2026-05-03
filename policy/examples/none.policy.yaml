@@ -1,0 +1,10 @@
+id: none
+version: "0.1"
+description: No restrictions. All models allowed, no caps.
+
+model_allowlist: []
+
+cost_caps:
+  max_tokens_per_request: 4096
+  max_requests_per_session: .inf
+  max_total_tokens_per_session: .inf

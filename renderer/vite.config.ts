@@ -124,4 +124,7 @@ export default defineConfig({
   define: {
     global: 'globalThis',
   },
+  server: {
+    fs: { allow: ['..'] },
+  },
 });

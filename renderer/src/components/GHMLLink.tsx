@@ -2,7 +2,13 @@ import React, { useState, useCallback } from 'react';
 import { parseGHMLUri, interpolatePrompt } from '../parser/ghml-parser';
 import { executeGHMLLink, ChainEntry, Provider } from '../executor/llm-executor';
 import { Theme } from '../types';
+import { POLICIES } from '../policies';
 import GHMLViewer from './GHMLViewer';
+
+export interface SessionCounters {
+  requests: number;
+  tokens: number;
+}
 
 interface GHMLLinkProps {
   href: string;
@@ -10,6 +16,9 @@ interface GHMLLinkProps {
   theme: Theme;
   provider: Provider;
   apiKey: string;
+  policyId: string;
+  sessionCounters: SessionCounters;
+  onCountersUpdate: (counters: SessionCounters) => void;
   pageContent: string;
   chainHistory: ChainEntry[];
   userVariables: Record<string, unknown>;
@@ -37,6 +46,9 @@ export default function GHMLLink({
   theme,
   provider,
   apiKey,
+  policyId,
+  sessionCounters,
+  onCountersUpdate,
   pageContent,
   chainHistory,
   userVariables,
@@ -53,6 +65,29 @@ export default function GHMLLink({
 
   const handleClick = useCallback(async () => {
     if (!link || !isReady) return;
+
+    // Resolve effective policy: link attribute overrides session policy
+    const effectivePolicyId = link.attrs.policy ?? policyId;
+    const policy = POLICIES[effectivePolicyId] ?? POLICIES.none;
+
+    // Enforce policy before dispatch
+    if (sessionCounters.requests >= policy.cost_caps.max_requests_per_session) {
+      setError(`Policy "${effectivePolicyId}": request limit reached (${policy.cost_caps.max_requests_per_session})`);
+      return;
+    }
+    if (sessionCounters.tokens >= policy.cost_caps.max_total_tokens_per_session) {
+      setError(`Policy "${effectivePolicyId}": token budget exhausted`);
+      return;
+    }
+    const requestedModel = link.attrs.model;
+    if (
+      requestedModel &&
+      policy.model_allowlist.length > 0 &&
+      !policy.model_allowlist.includes(requestedModel)
+    ) {
+      setError(`Policy "${effectivePolicyId}": model "${requestedModel}" not in allowlist`);
+      return;
+    }
 
     setError('');
     setLoading(true);
@@ -73,11 +108,18 @@ export default function GHMLLink({
         link: resolvedLink,
         provider,
         apiKey,
+        maxTokens: policy.cost_caps.max_tokens_per_request,
         pageContent,
         chainHistory,
         userVariables,
         onToken: (text) => setInlineContent(text),
-        onDone: () => setLoading(false),
+        onDone: (_text, tokenCount) => {
+          setLoading(false);
+          onCountersUpdate({
+            requests: sessionCounters.requests + 1,
+            tokens: sessionCounters.tokens + tokenCount,
+          });
+        },
         onError: (err) => { setError(err.message); setLoading(false); },
       });
     } else {
@@ -85,12 +127,17 @@ export default function GHMLLink({
         link: resolvedLink,
         provider,
         apiKey,
+        maxTokens: policy.cost_caps.max_tokens_per_request,
         pageContent,
         chainHistory,
         userVariables,
         onToken: (_text) => {},
-        onDone: (text) => {
+        onDone: (text, tokenCount) => {
           setLoading(false);
+          onCountersUpdate({
+            requests: sessionCounters.requests + 1,
+            tokens: sessionCounters.tokens + tokenCount,
+          });
           const newChain: ChainEntry[] = [
             ...chainHistory,
             { prompt: resolvedPrompt, response: text },
@@ -100,7 +147,7 @@ export default function GHMLLink({
         onError: (err) => { setError(err.message); setLoading(false); },
       });
     }
-  }, [link, isReady, provider, apiKey, pageContent, chainHistory, userVariables, onNavigate]);
+  }, [link, isReady, policyId, sessionCounters, onCountersUpdate, provider, apiKey, pageContent, chainHistory, userVariables, onNavigate]);
 
   if (!link) {
     return <a href={href} className="text-blue-600 hover:underline">{children}</a>;
@@ -140,6 +187,9 @@ export default function GHMLLink({
             theme={theme}
             provider={provider}
             apiKey={apiKey}
+            policyId={policyId}
+            sessionCounters={sessionCounters}
+            onCountersUpdate={onCountersUpdate}
             chainHistory={chainHistory}
             userVariables={userVariables}
             onNavigate={onNavigate}
