@@ -1,0 +1,149 @@
+# The Living Specification
+
+This file is the GHML specification, written in GHML. Every example you see is live — click any link and the model demonstrates the feature it describes. Reading the spec means using it.
+
+> *Companion to the formal `spec/ghml-spec.md`, which remains the canonical normative reference. This document is the demo.*
+
+---
+
+## What GHML Is
+
+GHML is a document format where hyperlinks carry [prompts](ghml:action "Explain what 'prompt' means in the context of GHML — the string passed to an LLM at click time. One paragraph, plain language." inline) instead of URLs. When you click a link in a GHML document, the renderer dispatches the embedded prompt to a [language model](ghml:action "Explain that the GHML renderer expects a streaming language model and that, in GHML, the model is the runtime. Two or three sentences." inline), which generates the destination — a page, a widget, an action, or a new GHML document — in real time.
+
+The animating shift: in HTML the author writes the destination. In GHML the author writes the *intent* and the model writes the destination [for the reader who arrived](ghml:action "Briefly explain why 'for the reader who arrived' matters — that destinations are co-authored by the reader's context. Two or three sentences." context=page inline).
+
+---
+
+## File Format
+
+A `.ghml` file is valid Markdown. Open it in a Markdown viewer and you see prose with link text — the file is at rest. Open it in a GHML renderer and the links activate — the file is [awake](ghml:action "Explain GHML's dormant/awake duality in two sentences, with a nod to graceful degradation as a deliberate design property." inline).
+
+```
+Extension:  .ghml
+MIME:       text/ghml
+Encoding:   UTF-8
+Base:       CommonMark Markdown
+```
+
+---
+
+## The `ghml:` URI Scheme
+
+GHML extends Markdown's link syntax with a `ghml:` URI scheme:
+
+```
+[link text](ghml:<type> "<prompt>" [attribute=value ...] [flags])
+```
+
+Five link types exist. Click each to see it work.
+
+---
+
+## render
+
+A `render` link replaces the current viewport with a freshly generated document.
+
+[Render a haiku about hypertext](ghml:render "Generate a single haiku about hypertext, then a one-paragraph reflection on the form. End with two ghml:nav links labeled with topics from the haiku that the reader could explore further, each context=chain." model=claude-opus-4-7)
+
+The destination may itself contain `ghml:` links — recursion is the [central property](ghml:action "Explain what recursion means here: that generated pages can themselves contain new ghml: links, and so on indefinitely. Three sentences." inline) of the medium.
+
+---
+
+## nav
+
+A `nav` link is like `render` but pushes the destination onto browser history. The back button works.
+
+[Begin a 3-page tour](ghml:nav "Generate page 1 of a 3-page narrative tour of GHML. End with a ghml:nav link 'Next →' that generates page 2, which in turn ends with 'Next →' to page 3. Each next-link uses context=chain so the narrative is consistent. Page 3 ends with a 'Back to start' ghml:nav link." context=chain model=claude-opus-4-7)
+
+---
+
+## action
+
+An `action` link runs a task and streams the result inline at the link's position. No navigation.
+
+[Summarize this spec so far in two sentences](ghml:action "Summarize the document above in two sentences. Be tight." context=page inline)
+
+[List the link types covered up to this point](ghml:action "From the document above, list every GHML link type already explained, with a one-clause description for each. Markdown bullet list. No preamble." context=page inline)
+
+---
+
+## embed
+
+An `embed` link renders a self-contained widget in place — a chart, a card, a mini-app.
+
+[Quick reference card](ghml:embed "Generate a compact Markdown reference card for the GHML link types: render, nav, action, embed, input. One row per type with the rule for when to use it. Use a tight Markdown table. No preamble." width=half)
+
+[Comparison: HTML vs GHML](ghml:embed "Generate a Markdown table comparing HTML and GHML across five dimensions: who writes the destination, when the destination exists, how navigation works, how personalization happens, and what 'reload' means. Be precise, not promotional. No preamble." width=full)
+
+---
+
+## input
+
+An `input` link renders an input field whose value is bound to a named variable available to every other link on the same page.
+
+[Your name](ghml:input "user.name" placeholder="What should the model call you?")
+
+[A topic that interests you](ghml:input "topic" placeholder="One word or phrase")
+
+[Generate a personalized one-pager](ghml:render "Write a one-page introduction to the topic of {{topic}}, addressed to {{user.name}}. Use their name once, naturally. Make the tone respectful of their curiosity. End with three ghml:nav links to related sub-topics, each context=chain. If user.name or topic is empty, ask the reader to fill the fields above first." context=user model=claude-opus-4-7)
+
+---
+
+## Context
+
+Links can declare what the model sees alongside the prompt. The values are space-separated.
+
+| Value | What gets injected |
+|---|---|
+| `page` | The current document |
+| `user` | Session-level user data |
+| `selection` | The reader's currently-selected text |
+| `chain` | The full navigation history as accumulated context |
+| `data` | Live `{{variable}}` resolutions |
+| `dom` | The visible DOM state |
+
+[Show context=chain in action](ghml:nav "You are demonstrating context=chain. Acknowledge that you have access to the navigation history that brought the reader here. List, briefly, what was on the prior page or two. Then write one paragraph about why this matters for GHML — that the path through the document is itself part of the reading. End with a ghml:nav link 'Continue chain →' that demonstrates the same property again." context=chain model=claude-opus-4-7)
+
+---
+
+## Data Binding
+
+Prompts can interpolate `{{variable}}` references resolved against bound data sources at render time. Variables can be user inputs (above), user-session data (`{{user.role}}`), or live data sources (`{{data.…}}`).
+
+[Type a question](ghml:input "question" placeholder="Anything")
+
+[Answer it](ghml:render "Answer the question: {{question}}. Be honest. Show reasoning. End with two ghml:nav links to related angles, each context=chain. If question is empty, ask the reader to type one above." model=claude-opus-4-7)
+
+---
+
+## Recursion: A Single Seed
+
+Watch a single document spawn a tree of further documents. Each click pushes deeper.
+
+[Plant a seed](ghml:nav "Generate a one-paragraph 'first node' of a small fictional encyclopedia about an invented civilization of your choosing. Include three ghml:nav links to sub-articles within the encyclopedia (a city, a custom, a figure), each context=chain. Each sub-article you eventually generate should itself contain three more nav links into its own sub-topics, also context=chain. The entire encyclopedia is created on demand, growing as the reader walks." context=chain model=claude-opus-4-7)
+
+---
+
+## Output Contract
+
+The model's response to a `ghml:render` or `ghml:nav` should be valid CommonMark Markdown, optionally containing `ghml:` links for further navigation. The model is, in effect, the runtime.
+
+[Show me what the model emits](ghml:action "Demonstrate the GHML output contract by emitting, as a Markdown code block, an example of what a model might produce for a ghml:render call: a short Markdown paragraph followed by two ghml:nav links. After the code block, write one paragraph explaining the contract." inline)
+
+---
+
+## Policy and Fallback
+
+A renderer may enforce a policy. A link can declare a `fallback` URI for use when the LLM is unavailable or the policy refuses the request.
+
+[A policy-restricted link](ghml:render "Explain prompt injection in two paragraphs and propose two mitigations." policy=strict fallback=https://example.com/ghml-policy-blocked)
+
+---
+
+## Read This File as Markdown
+
+If you load this file in a non-GHML Markdown viewer, every link above degrades to plain link text — non-functional but still readable. The spec is legible at rest. This is graceful degradation by design — and the philosophy's [sixth axiom](ghml:action "Recite axiom 6 and its sub-claims from docs/philosophy.md. Plain text, no commentary, no preamble." inline) made software.
+
+---
+
+*Showcase of [Generative HyperText Markup Language](https://github.com/anoiio/ghml). The spec is the demo. The demo is the spec.*

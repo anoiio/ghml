@@ -1,0 +1,29 @@
+# Wikipedia of Counterfactuals
+
+> *Caesar crosses the Rubicon, 49 BCE. He chose. He need not have. From this point, history forks endlessly.*
+
+This `.ghml` is a wandering through alternate histories. Each link below is a divergence. Click any → an article generates that takes you down that branch. The pages you generate may contain further divergences. The timeline you walk is unique to your session: `context=chain` keeps it self-consistent across hops. Two readers from this same seed walk different histories.
+
+---
+
+## The Event
+
+In January 49 BCE, Gaius Julius Caesar — Proconsul of Gaul — led the 13th Legion across a small river that marked the southern border of his command. He spoke, by some accounts, the words *alea iacta est* — the die is cast. From that moment Rome was at civil war.
+
+What history does that gesture not enable? Pick a branch.
+
+---
+
+## Divergences
+
+[What if Caesar turned back at the river?](ghml:nav "Generate a Wikipedia-style article titled 'Caesar's Hesitation (49 BCE)' describing the alternate timeline in which Caesar turned the 13th Legion back from the Rubicon and submitted to Senate authority. Cover: immediate political consequences, fate of the Republic, what happened to Pompey, what happened to Caesar himself, and second-order effects on the next two decades. Write in the dry, neutral register of an encyclopedia. End the article with three more ghml:nav divergences within this branch — each phrased as 'What if X?' or 'What about Y?' — each set to context=chain so subsequent clicks continue this branch coherently. Maintain self-consistency with any prior history present in chain context. Article ~400 words." context=chain model=claude-opus-4-7)
+
+[What if Pompey met him at Brundisium and won?](ghml:nav "Generate a Wikipedia-style article titled 'The Battle of Brundisium (49 BCE)' covering the alternate timeline in which Pompey decisively defeated Caesar in southern Italy at the start of the civil war. Cover: military details (plausible, period-appropriate), political aftermath, what becomes of Caesar's faction, the long-term shape of the Republic. Encyclopedia register. End with three further ghml:nav divergences, each context=chain. Maintain consistency with any prior chain history. ~400 words." context=chain model=claude-opus-4-7)
+
+[What if the legion refused to follow him?](ghml:nav "Generate a Wikipedia-style article titled 'The Mutiny at the Rubicon' describing an alternate timeline in which the 13th Legion refused Caesar's order to cross. Cover: the dynamics of the mutiny (named centurions, plausible motivations), Caesar's fate, what happened to the legion, the political effect on Rome, the second-order consequences for the late Republic. Encyclopedia register. End with three further ghml:nav divergences, each context=chain. Maintain consistency with any prior chain history. ~400 words." context=chain model=claude-opus-4-7)
+
+[What if Pompey had died of fever in 50 BCE?](ghml:nav "Generate a Wikipedia-style article titled 'Pompey's Death by Illness (50 BCE)' describing the alternate history in which Pompey died of natural causes a year before the Rubicon crisis. Cover: who fills the political vacuum, whether civil war happens at all, what becomes of Caesar, the Republic's trajectory through the 40s BCE, second-order effects. Encyclopedia register. End with three further ghml:nav divergences, each context=chain. Maintain consistency with any prior chain history. ~400 words." context=chain model=claude-opus-4-7)
+
+---
+
+*Showcase of [Generative HyperText Markup Language](https://github.com/anoiio/ghml). Demonstrates axiom 5 (the document is not the artifact; it is the unfolding of its readings) and axiom 2.4 (the path is part of the reading). Each click forks the timeline; `context=chain` keeps your branch self-consistent.*

@@ -1,0 +1,15 @@
+# Plain Language Anything
+
+Paste a contract, a medical paragraph, an academic abstract — any prose where you don't know every term — into the field below. Click **Annotate**: the document is reproduced with every domain term wrapped as a clickable explanation. Click any term to see a plain-language gloss in place.
+
+The source text is preserved verbatim. Only the links are added. Read this `.ghml` file in a Markdown viewer and you get your source back, dormant.
+
+---
+
+[Source text](ghml:input "source" placeholder="Paste any dense text here — a contract clause, a medical paragraph, an academic abstract…")
+
+[Annotate](ghml:render "You are a plain-language annotator. The reader has supplied source text via the {{source}} variable. Your job: reproduce the source faithfully — every word, every paragraph, in order — but wrap every technical term, acronym, legal/medical/jargon phrase, or domain-specific reference that a non-specialist would not immediately understand, as a Markdown link. CRITICAL RULE: each link uses the term TWICE — once as the visible link text, once inside the action prompt's quoted string — so the explainer model knows exactly which term to explain. Worked example for the term 'force majeure': emit exactly [force majeure](ghml:action \"Explain 'force majeure' in two sentences, plain language, given the context where it appears in the document above.\" context=page inline). Worked example for 'IRB approval': emit [IRB approval](ghml:action \"Explain 'IRB approval' in two sentences, plain language, given the context where it appears in the document above.\" context=page inline). Always inline the actual term inside the action prompt's quoted string — never leave it generic. Wrap multi-word phrases as a single link. Wrap each occurrence independently — if the same term appears three times, wrap all three. Do not wrap common English words. Do not paraphrase the source. Do not add commentary. Do not summarize. Output only the annotated source text, nothing else. Source text follows: {{source}}" model=claude-opus-4-7)
+
+---
+
+*Showcase of [Generative HyperText Markup Language](https://github.com/anoiio/ghml). Demonstrates axiom 2 (the click is a measurement) and axiom 4 (the author shapes the field, not the page).*

@@ -16,6 +16,8 @@ GHML is a document format where hyperlinks carry **prompts** instead of URLs. Wh
 | `spec/ghml-spec.md` | Formal specification with EBNF grammar |
 | `spec/ghml-schema.json` | JSON Schema for link attributes |
 | `spec/examples/sample.ghml` | Sample document exercising all link types |
+| `examples/` | Showcase `.ghml` files — pitches for the medium, not syntax tutorials |
+| `docs/philosophy.md` | *Propositions on the Virtual Document* — the philosophy of GHML |
 | `renderer/` | Standalone web app (React + TypeScript + Vite) |
 | `policy/policy-schema.yaml` | YAML policy schema (model allowlist + cost caps) |
 | `policy/examples/` | Example policy files |

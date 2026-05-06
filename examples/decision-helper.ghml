@@ -1,0 +1,29 @@
+# The Decision Helper
+
+A canonical GHML app. Three inputs, four tools, one `.ghml` file. Fork it for your own decisions.
+
+---
+
+## What are you deciding?
+
+[Decision](ghml:input "decision" placeholder="e.g., Should I take the senior engineer offer at Acme?")
+
+[Options](ghml:input "options" placeholder="Comma-separated. e.g., Take Acme, Stay at current role, Negotiate a counter")
+
+[What I value](ghml:input "values" placeholder="Comma-separated. e.g., autonomy, learning rate, compensation, family time")
+
+---
+
+## Tools
+
+[Compare](ghml:embed "Render a Markdown comparison table for the decision: '{{decision}}'. Rows are the user's options: {{options}}. Columns are what they value: {{values}}. For each cell write a one-line judgment of how that option scores on that value (e.g., 'High — flexible hours' or 'Low — heavy travel'). Below the table, write a single sentence naming the strongest option and why. Be honest, not flattering. If the user's inputs are missing or empty, ask them to fill in the fields above first." width=full model=claude-opus-4-7)
+
+[Stress-test](ghml:embed "For the decision '{{decision}}' across options {{options}}, generate a Markdown stress-test table. Rows are the options. Columns are: 'Plausible failure mode', 'Early warning sign', 'Hard to reverse?'. Be specific. Avoid platitudes. Below the table, name which option carries the most asymmetric downside and why. If inputs are missing or empty, say so plainly." width=full model=claude-opus-4-7)
+
+[Steel-man each option](ghml:action "For each option in {{options}}, given the decision '{{decision}}' and values {{values}}, write a one-paragraph steel-man — the strongest argument for that option, written by someone who genuinely believes it. Output as a Markdown list, one entry per option. If inputs are missing, say so plainly and stop." inline)
+
+[What's the question I'm not asking?](ghml:action "Looking at the decision '{{decision}}', the options {{options}}, and the values {{values}} — what is a question the reader has probably not asked themselves but should? Output one to three questions, each as a single sharp line. No preamble. If inputs are missing, say so plainly and stop." inline)
+
+---
+
+*Showcase of [Generative HyperText Markup Language](https://github.com/anoiio/ghml). Demonstrates axiom 3 (the document is constituted in the meeting of author, model, and reader-context). The author writes prompts; the user fills inputs; the model writes the meeting.*
