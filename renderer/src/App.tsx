@@ -5,42 +5,7 @@ import FileLoader from './components/FileLoader';
 import { ChainEntry, Provider } from './executor/llm-executor';
 import { Theme } from './types';
 import { SessionCounters } from './components/GHMLLink';
-
-const DEFAULT_CONTENT = `# Welcome to GHML
-
-**Generative HyperText Markup Language** — a document format where hyperlinks carry LLM prompts instead of URLs. Click a link to generate its destination in real time.
-
----
-
-## Try It
-
-[What is GHML?](ghml:render "Generate a friendly, well-structured overview of Generative HyperText Markup Language. Explain what it is, why it's interesting, and include 2 ghml:action links at the end for quick follow-up questions.")
-
-[List creative use cases](ghml:action "List 5 imaginative use cases for a document format where every hyperlink dispatches a prompt to an LLM and generates the destination. Be specific and concrete." inline)
-
-[Explore the architecture](ghml:render "Explain the GHML runtime architecture: Parser → Context Builder → Prompt Router → Stream Renderer → History Engine. One section per layer, with a ghml:action link to 'show a code sketch' at the end of each section." context=page)
-
----
-
-## Link Types at a Glance
-
-| Type | What it does |
-|---|---|
-| \`render\` | Generates a full new document; replaces this view |
-| \`nav\` | Like render, but browser history works |
-| \`action\` | Streams result inline here; no navigation |
-| \`embed\` | Renders an inline widget |
-
----
-
-## Recursive Demo
-
-[Start a story](ghml:nav "Begin a short interactive story (2 paragraphs). End with exactly 2 ghml:nav links representing different story choices. Each choice should use context=chain so the story continues coherently." context=chain)
-
----
-
-*Choose a provider in Settings (top right), then click any link above.*
-`;
+import DEFAULT_CONTENT from '../../examples/living-spec.ghml?raw';
 
 export default function App() {
   const [currentDoc, setCurrentDoc] = useState(DEFAULT_CONTENT);
