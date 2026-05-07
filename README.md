@@ -9,6 +9,20 @@ GHML is a document format where hyperlinks carry **prompts** instead of URLs. Wh
 
 ---
 
+## Screenshots
+
+<!-- SCREENSHOT SLOTS
+     Save images to docs/screenshots/ and uncomment:
+
+![GHML Renderer — clean theme](docs/screenshots/renderer-clean.png)
+![GHML Renderer — cyberpunk theme](docs/screenshots/renderer-cyberpunk.png)
+![awake.ghml — literary entity](docs/screenshots/awake.png)
+![decision-helper.ghml — inputs + widgets](docs/screenshots/decision-helper.png)
+![counterfactuals.ghml — alternate history tree](docs/screenshots/counterfactuals.png)
+-->
+
+---
+
 ## What's in this repo
 
 | Path | Contents |
@@ -26,6 +40,8 @@ GHML is a document format where hyperlinks carry **prompts** instead of URLs. Wh
 
 ## Quick Start (renderer)
 
+### Option A — Anthropic API key
+
 You need an Anthropic API key from [console.anthropic.com](https://console.anthropic.com).
 
 ```bash
@@ -34,7 +50,19 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`, click **Settings**, paste your API key, then click any link on the page.
+Open `http://localhost:5173`, click **Settings**, select **API** as the provider, paste your key, then click any link on the page.
+
+### Option B — Claude Code (local, no API key needed)
+
+If you have [Claude Code](https://claude.ai/code) installed:
+
+```bash
+cd renderer
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`, click **Settings**, switch **Provider** to **Local CLI**. The Vite dev server proxies requests directly to the `claude` CLI — no API key required.
 
 To load your own `.ghml` file, click **Load .ghml** in the header.
 
