@@ -102,7 +102,17 @@ export function interpolatePrompt(
   variables: Record<string, unknown>,
 ): string {
   return prompt.replace(/\{\{([^}]+)\}\}/g, (match, path) => {
-    const keys = (path as string).trim().split('.');
+    const trimmed = (path as string).trim();
+
+    // Flat-key lookup first: supports inputs and settings that store
+    // dotted names as literal keys (e.g. variables["user.name"] = "Alice").
+    if (Object.prototype.hasOwnProperty.call(variables, trimmed)) {
+      const flat = variables[trimmed];
+      if (flat != null) return String(flat);
+    }
+
+    // Fall back to dotted-path traversal for nested objects.
+    const keys = trimmed.split('.');
     let value: unknown = variables;
     for (const key of keys) {
       if (value == null || typeof value !== 'object') return match;

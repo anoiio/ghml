@@ -114,14 +114,23 @@
 [data-theme="cyberpunk"] .settings-modal .settings-label {
   color: rgba(0, 255, 255, 0.6);
 }
+[data-theme="cyberpunk"] .settings-modal .settings-radio-title {
+  color: #c8dce8;
+}
+[data-theme="cyberpunk"] .settings-modal code {
+  background: rgba(0, 255, 65, 0.07);
+  color: #00ff41;
+}
 [data-theme="cyberpunk"] .settings-modal input[type="password"],
-[data-theme="cyberpunk"] .settings-modal textarea {
+[data-theme="cyberpunk"] .settings-modal textarea,
+[data-theme="cyberpunk"] .settings-modal select {
   background: #06060f;
   border-color: rgba(0, 255, 255, 0.15);
   color: #b0cce0;
 }
 [data-theme="cyberpunk"] .settings-modal input[type="password"]:focus,
-[data-theme="cyberpunk"] .settings-modal textarea:focus {
+[data-theme="cyberpunk"] .settings-modal textarea:focus,
+[data-theme="cyberpunk"] .settings-modal select:focus {
   border-color: rgba(0, 255, 255, 0.45);
   box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.08);
   outline: none;

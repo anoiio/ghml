@@ -107,7 +107,7 @@ export default function GHMLLink({
 
     const resolvedLink = { ...link, prompt: resolvedPrompt };
 
-    if (link.type === 'action') {
+    if (link.type === 'action' || link.type === 'embed') {
       await executeGHMLLink({
         link: resolvedLink,
         provider,

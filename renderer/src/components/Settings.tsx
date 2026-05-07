@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Provider } from '../executor/llm-executor';
 import { Theme } from '../types';
 import { POLICIES, POLICY_IDS } from '../policies';
@@ -10,11 +10,23 @@ interface SettingsProps {
   apiKey: string;
   userVariables: Record<string, unknown>;
   onSave: (theme: Theme, provider: Provider, policyId: string, apiKey: string, userVariables: Record<string, unknown>) => void;
+  onPreviewTheme?: (theme: Theme) => void;
   onClose: () => void;
 }
 
-export default function Settings({ theme, provider, policyId, apiKey, userVariables, onSave, onClose }: SettingsProps) {
+export default function Settings({ theme, provider, policyId, apiKey, userVariables, onSave, onPreviewTheme, onClose }: SettingsProps) {
+  const originalTheme = useRef(theme);
   const [selectedTheme, setSelectedTheme] = useState<Theme>(theme);
+
+  const previewTheme = (next: Theme) => {
+    setSelectedTheme(next);
+    onPreviewTheme?.(next);
+  };
+
+  const handleCancel = () => {
+    onPreviewTheme?.(originalTheme.current);
+    onClose();
+  };
   const [selectedProvider, setSelectedProvider] = useState<Provider>(provider);
   const [selectedPolicyId, setSelectedPolicyId] = useState(policyId);
   const [key, setKey] = useState(apiKey);
@@ -41,7 +53,7 @@ export default function Settings({ theme, provider, policyId, apiKey, userVariab
   return (
     <div
       className="settings-overlay fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-      onClick={onClose}
+      onClick={handleCancel}
     >
       <div
         className="settings-modal bg-white rounded-xl shadow-2xl p-6 w-full max-w-md"
@@ -56,17 +68,17 @@ export default function Settings({ theme, provider, policyId, apiKey, userVariab
             <div className="space-y-2">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input type="radio" name="theme" value="clean" checked={selectedTheme === 'clean'}
-                  onChange={() => setSelectedTheme('clean')} className="mt-0.5 accent-blue-600" />
+                  onChange={() => previewTheme('clean')} className="mt-0.5 accent-blue-600" />
                 <div>
-                  <span className="text-sm font-medium text-gray-800">Clean</span>
+                  <span className="settings-radio-title text-sm font-medium text-gray-800">Clean</span>
                   <p className="settings-note text-xs text-gray-500">Minimal white/gray — default</p>
                 </div>
               </label>
               <label className="flex items-start gap-3 cursor-pointer">
                 <input type="radio" name="theme" value="cyberpunk" checked={selectedTheme === 'cyberpunk'}
-                  onChange={() => setSelectedTheme('cyberpunk')} className="mt-0.5 accent-cyan-400" />
+                  onChange={() => previewTheme('cyberpunk')} className="mt-0.5 accent-cyan-400" />
                 <div>
-                  <span className="text-sm font-medium text-gray-800">Cyberpunk ⚡</span>
+                  <span className="settings-radio-title text-sm font-medium text-gray-800">Cyberpunk ⚡</span>
                   <p className="settings-note text-xs text-gray-500">Neo-noir dark with neon accents</p>
                 </div>
               </label>
@@ -81,7 +93,7 @@ export default function Settings({ theme, provider, policyId, apiKey, userVariab
                 <input type="radio" name="provider" value="api" checked={selectedProvider === 'api'}
                   onChange={() => setSelectedProvider('api')} className="mt-0.5 accent-blue-600" />
                 <div>
-                  <span className="text-sm font-medium text-gray-800">Anthropic API</span>
+                  <span className="settings-radio-title text-sm font-medium text-gray-800">Anthropic API</span>
                   <p className="settings-note text-xs text-gray-500">Requires an API key from console.anthropic.com</p>
                 </div>
               </label>
@@ -89,7 +101,7 @@ export default function Settings({ theme, provider, policyId, apiKey, userVariab
                 <input type="radio" name="provider" value="local-cli" checked={selectedProvider === 'local-cli'}
                   onChange={() => setSelectedProvider('local-cli')} className="mt-0.5 accent-blue-600" />
                 <div>
-                  <span className="text-sm font-medium text-gray-800">Local Claude CLI ⚡</span>
+                  <span className="settings-radio-title text-sm font-medium text-gray-800">Local Claude CLI ⚡</span>
                   <p className="settings-note text-xs text-gray-500">
                     Uses your Claude Code subscription — no API key needed.
                     Requires <code className="font-mono bg-gray-100 px-1 rounded">npm run dev</code>.
@@ -165,7 +177,7 @@ export default function Settings({ theme, provider, policyId, apiKey, userVariab
         </div>
 
         <div className="flex justify-end gap-2 mt-6">
-          <button onClick={onClose}
+          <button onClick={handleCancel}
             className="settings-cancel-btn px-4 py-2 text-sm text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100">
             Cancel
           </button>

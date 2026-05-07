@@ -192,6 +192,7 @@ export default function App() {
           apiKey={apiKey}
           userVariables={userVariables}
           onSave={handleSaveSettings}
+          onPreviewTheme={setTheme}
           onClose={() => setShowSettings(false)}
         />
       )}
