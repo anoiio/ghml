@@ -2,7 +2,7 @@
 
 This directory holds standalone `.ghml` files that demonstrate what the medium can do. Each one is single-file, forkable, and runs in the renderer at `../renderer/` once you supply an Anthropic API key.
 
-> The exhaustive feature walkthrough lives at `../spec/examples/sample.ghml`. These showcases are different — they exist to *pitch* the medium, not teach the syntax.
+> The exhaustive feature walkthrough lives at `../docs/spec/examples/sample.ghml`. These showcases are different — they exist to *pitch* the medium, not teach the syntax.
 
 ## The five
 
