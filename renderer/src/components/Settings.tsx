@@ -1,32 +1,17 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Provider } from '../executor/llm-executor';
-import { Theme } from '../types';
 import { POLICIES, POLICY_IDS } from '../policies';
 
 interface SettingsProps {
-  theme: Theme;
   provider: Provider;
   policyId: string;
   apiKey: string;
   userVariables: Record<string, unknown>;
-  onSave: (theme: Theme, provider: Provider, policyId: string, apiKey: string, userVariables: Record<string, unknown>) => void;
-  onPreviewTheme?: (theme: Theme) => void;
+  onSave: (provider: Provider, policyId: string, apiKey: string, userVariables: Record<string, unknown>) => void;
   onClose: () => void;
 }
 
-export default function Settings({ theme, provider, policyId, apiKey, userVariables, onSave, onPreviewTheme, onClose }: SettingsProps) {
-  const originalTheme = useRef(theme);
-  const [selectedTheme, setSelectedTheme] = useState<Theme>(theme);
-
-  const previewTheme = (next: Theme) => {
-    setSelectedTheme(next);
-    onPreviewTheme?.(next);
-  };
-
-  const handleCancel = () => {
-    onPreviewTheme?.(originalTheme.current);
-    onClose();
-  };
+export default function Settings({ provider, policyId, apiKey, userVariables, onSave, onClose }: SettingsProps) {
   const [selectedProvider, setSelectedProvider] = useState<Provider>(provider);
   const [selectedPolicyId, setSelectedPolicyId] = useState(policyId);
   const [key, setKey] = useState(apiKey);
@@ -44,7 +29,7 @@ export default function Settings({ theme, provider, policyId, apiKey, userVariab
         if (k) vars[k] = v;
       }
     }
-    onSave(selectedTheme, selectedProvider, selectedPolicyId, key.trim(), vars);
+    onSave(selectedProvider, selectedPolicyId, key.trim(), vars);
     onClose();
   };
 
@@ -53,7 +38,7 @@ export default function Settings({ theme, provider, policyId, apiKey, userVariab
   return (
     <div
       className="settings-overlay fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-      onClick={handleCancel}
+      onClick={onClose}
     >
       <div
         className="settings-modal bg-white rounded-xl shadow-2xl p-6 w-full max-w-md"
@@ -62,29 +47,6 @@ export default function Settings({ theme, provider, policyId, apiKey, userVariab
         <h2 className="text-lg font-semibold mb-4">Settings</h2>
 
         <div className="space-y-4">
-          {/* Theme */}
-          <div>
-            <label className="settings-label block text-sm font-medium text-gray-700 mb-2">Theme</label>
-            <div className="space-y-2">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input type="radio" name="theme" value="clean" checked={selectedTheme === 'clean'}
-                  onChange={() => previewTheme('clean')} className="mt-0.5 accent-blue-600" />
-                <div>
-                  <span className="settings-radio-title text-sm font-medium text-gray-800">Clean</span>
-                  <p className="settings-note text-xs text-gray-500">Minimal white/gray — default</p>
-                </div>
-              </label>
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input type="radio" name="theme" value="cyberpunk" checked={selectedTheme === 'cyberpunk'}
-                  onChange={() => previewTheme('cyberpunk')} className="mt-0.5 accent-cyan-400" />
-                <div>
-                  <span className="settings-radio-title text-sm font-medium text-gray-800">Cyberpunk ⚡</span>
-                  <p className="settings-note text-xs text-gray-500">Neo-noir dark with neon accents</p>
-                </div>
-              </label>
-            </div>
-          </div>
-
           {/* Provider */}
           <div>
             <label className="settings-label block text-sm font-medium text-gray-700 mb-2">LLM Provider</label>
@@ -168,7 +130,7 @@ export default function Settings({ theme, provider, policyId, apiKey, userVariab
             <textarea
               value={varsText}
               onChange={(e) => setVarsText(e.target.value)}
-              placeholder={'user.name=Alice\nuser.role=developer\nuser.plan=pro'}
+              placeholder={'user.name=Alice\nuser.role=developer\nuser.tone=concise'}
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -177,7 +139,7 @@ export default function Settings({ theme, provider, policyId, apiKey, userVariab
         </div>
 
         <div className="flex justify-end gap-2 mt-6">
-          <button onClick={handleCancel}
+          <button onClick={onClose}
             className="settings-cancel-btn px-4 py-2 text-sm text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100">
             Cancel
           </button>

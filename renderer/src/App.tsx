@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import GHMLViewer from './components/GHMLViewer';
 import Settings from './components/Settings';
 import FileLoader from './components/FileLoader';
+import ExampleLoader from './components/ExampleLoader';
 import { ChainEntry, Provider } from './executor/llm-executor';
 import { Theme } from './types';
 import { SessionCounters } from './components/GHMLLink';
@@ -53,13 +54,11 @@ export default function App() {
   }, []);
 
   const handleSaveSettings = useCallback(
-    (newTheme: Theme, newProvider: Provider, newPolicyId: string, key: string, vars: Record<string, unknown>) => {
-      setTheme(newTheme);
+    (newProvider: Provider, newPolicyId: string, key: string, vars: Record<string, unknown>) => {
       setProvider(newProvider);
       setPolicyId(newPolicyId);
       setApiKey(key);
       setUserVariables(vars);
-      localStorage.setItem('ghml-theme', newTheme);
       localStorage.setItem('ghml-provider', newProvider);
       localStorage.setItem('ghml-policy', newPolicyId);
       localStorage.setItem('ghml-api-key', key);
@@ -67,6 +66,14 @@ export default function App() {
     },
     [],
   );
+
+  const handleToggleTheme = useCallback(() => {
+    setTheme((prev) => {
+      const next = prev === 'cyberpunk' ? 'clean' : 'cyberpunk';
+      localStorage.setItem('ghml-theme', next);
+      return next;
+    });
+  }, []);
 
   const resetSession = useCallback(() => {
     setSessionCounters({ requests: 0, tokens: 0 });
@@ -141,6 +148,8 @@ export default function App() {
           {showSource ? 'Rendered' : 'Source'}
         </button>
 
+        <ExampleLoader onLoad={handleLoadFile} />
+
         <FileLoader onLoad={handleLoadFile} />
 
         <button
@@ -152,6 +161,39 @@ export default function App() {
         >
           {needsApiKey && <span className="text-xs">⚠</span>}
           Settings
+        </button>
+
+        <button
+          onClick={handleToggleTheme}
+          role="switch"
+          aria-checked={theme === 'cyberpunk'}
+          aria-label={`Switch to ${theme === 'cyberpunk' ? 'Clean' : 'Cyberpunk'} theme`}
+          title={`Switch to ${theme === 'cyberpunk' ? 'Clean' : 'Cyberpunk'} theme`}
+          className={[
+            'theme-toggle relative shrink-0 w-11 h-6 rounded-full border transition-colors',
+            theme === 'cyberpunk'
+              ? 'bg-cyan-500/25 border-cyan-400/60'
+              : 'bg-gray-200 border-gray-300',
+          ].join(' ')}
+        >
+          <span
+            aria-hidden
+            className={[
+              'theme-toggle-thumb absolute top-px left-px w-5 h-5 rounded-full shadow-sm flex items-center justify-center transition-transform duration-200',
+              theme === 'cyberpunk' ? 'translate-x-5 bg-cyan-100 text-cyan-700' : 'translate-x-0 bg-white text-amber-500',
+            ].join(' ')}
+          >
+            {theme === 'cyberpunk' ? (
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            ) : (
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+              </svg>
+            )}
+          </span>
         </button>
       </header>
 
@@ -186,13 +228,11 @@ export default function App() {
 
       {showSettings && (
         <Settings
-          theme={theme}
           provider={provider}
           policyId={policyId}
           apiKey={apiKey}
           userVariables={userVariables}
           onSave={handleSaveSettings}
-          onPreviewTheme={setTheme}
           onClose={() => setShowSettings(false)}
         />
       )}

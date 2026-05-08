@@ -88,6 +88,17 @@
   color: rgba(0, 255, 255, 0.35);
 }
 
+[data-theme="cyberpunk"] header .example-loader {
+  background: transparent;
+  border-color: rgba(0, 255, 255, 0.15);
+  color: #4a6070;
+}
+[data-theme="cyberpunk"] header .example-loader:hover {
+  background: rgba(0, 255, 255, 0.06);
+  color: #00ffff;
+  border-color: rgba(0, 255, 255, 0.3);
+}
+
 /* Source view */
 [data-theme="cyberpunk"] .source-view {
   background: #010108 !important;

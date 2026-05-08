@@ -64,7 +64,7 @@ npm run dev
 
 Open `http://localhost:5173`, click **Settings**, switch **Provider** to **Local CLI**. The Vite dev server proxies requests directly to the `claude` CLI — no API key required.
 
-To load your own `.ghml` file, click **Load .ghml** in the header.
+Pick a bundled showcase from the **Examples…** dropdown in the header, or click **Load .ghml** to open one from disk. Toggle the **Clean / Cyber ⚡** button to switch themes.
 
 ---
 

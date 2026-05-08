@@ -22,7 +22,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`, paste your Anthropic API key into Settings, then click **Load .ghml** and pick any file in this directory.
+Open `http://localhost:5173`, paste your Anthropic API key into Settings, then pick a file from the **Examples…** dropdown in the header (the files in this directory are bundled at build time). To load a `.ghml` file from elsewhere on disk, use **Load .ghml**.
 
 ## Connection to the philosophy
 
