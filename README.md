@@ -11,15 +11,25 @@ GHML is a document format where hyperlinks carry **prompts** instead of URLs. Wh
 
 ## Screenshots
 
-<!-- SCREENSHOT SLOTS
-     Save images to docs/screenshots/ and uncomment:
+![living-spec.ghml — the GHML spec, rendered in GHML](examples/images/living-spec-overview.png)
 
-![GHML Renderer — clean theme](docs/screenshots/renderer-clean.png)
-![GHML Renderer — cyberpunk theme](docs/screenshots/renderer-cyberpunk.png)
-![awake.ghml — literary entity](docs/screenshots/awake.png)
-![decision-helper.ghml — inputs + widgets](docs/screenshots/decision-helper.png)
-![counterfactuals.ghml — alternate history tree](docs/screenshots/counterfactuals.png)
--->
+*`living-spec.ghml` — the spec written in itself. Every example you read is live; clicking any link asks the model to demonstrate the feature it describes.*
+
+![living-spec.ghml — render and nav link types](examples/images/living-spec-link-types.png)
+
+*The same file, scrolled to the `render` and `nav` link-type sections — each `[render]` / `[nav]` pill is itself a live demonstration of what it explains.*
+
+![living-spec.ghml — action, embed, and input](examples/images/living-spec-action-embed-input.png)
+
+*Further down: inline `action` results, self-contained `embed` widgets, and `input` fields whose values bind to `{{variables}}` consumed by the next link on the page.*
+
+![counterfactuals.ghml — alternate history tree](examples/images/counterfactuals.png)
+
+*`counterfactuals.ghml` — Caesar at the Rubicon seeds an unfolding tree of alternate histories. `context=chain` keeps every branch self-consistent; two readers from the same seed walk different timelines.*
+
+![plain-language-anything.ghml — domain-term gloss](examples/images/plain-language-anything.png)
+
+*`plain-language-anything.ghml` — paste a contract, an abstract, or a medical paragraph; every term becomes a clickable plain-language gloss in place. The source text is preserved verbatim.*
 
 ---
 

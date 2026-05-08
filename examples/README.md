@@ -14,6 +14,22 @@ This directory holds standalone `.ghml` files that demonstrate what the medium c
 | [`awake.ghml`](awake.ghml) | Literary entity (wildcard) | A document that knows it is being read, addresses you directly, and remembers your path. Borges meets Hofstadter meets Calvino in 40 lines. |
 | [`living-spec.ghml`](living-spec.ghml) | Meta showcase | The GHML spec written *in* GHML. Reading it means using it. Every example is live. |
 
+## In action
+
+`living-spec.ghml` — the spec demonstrating itself. Three views:
+
+![living-spec — overview](images/living-spec-overview.png)
+![living-spec — render & nav](images/living-spec-link-types.png)
+![living-spec — action, embed, input](images/living-spec-action-embed-input.png)
+
+`counterfactuals.ghml` — alternate-history tree seeded from a single event:
+
+![counterfactuals](images/counterfactuals.png)
+
+`plain-language-anything.ghml` — paste any dense text; every term becomes a gloss:
+
+![plain-language-anything](images/plain-language-anything.png)
+
 ## How to run
 
 ```
